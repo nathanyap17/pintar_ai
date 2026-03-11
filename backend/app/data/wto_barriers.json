@@ -1,0 +1,183 @@
+{
+    "Singapore": {
+        "country_code": "SG",
+        "friction_base": 15,
+        "sps_alerts": [
+            {
+                "id": "SPS-SG-2024-001",
+                "type": "SPS",
+                "description": "Mandatory pest risk analysis for all fresh produce imports",
+                "severity": "low",
+                "affected_products": [
+                    "fresh fruits",
+                    "vegetables",
+                    "rice"
+                ]
+            }
+        ],
+        "tbt_barriers": [
+            {
+                "id": "TBT-SG-2024-003",
+                "type": "TBT",
+                "description": "Singapore Food Agency (SFA) labeling requirements for packaged food",
+                "severity": "low",
+                "affected_products": [
+                    "packaged food",
+                    "spices",
+                    "condiments"
+                ]
+            }
+        ],
+        "de_minimis_usd": 400,
+        "avg_clearance_days": 1
+    },
+    "Brunei": {
+        "country_code": "BN",
+        "friction_base": 20,
+        "sps_alerts": [
+            {
+                "id": "SPS-BN-2024-001",
+                "type": "SPS",
+                "description": "Halal certification mandatory for all food products",
+                "severity": "medium",
+                "affected_products": [
+                    "all food products"
+                ]
+            }
+        ],
+        "tbt_barriers": [],
+        "de_minimis_usd": 300,
+        "avg_clearance_days": 2
+    },
+    "Indonesia": {
+        "country_code": "ID",
+        "friction_base": 42,
+        "sps_alerts": [
+            {
+                "id": "SPS-ID-2024-002",
+                "type": "SPS",
+                "description": "BPOM pre-import registration required for all food and herbal products",
+                "severity": "high",
+                "affected_products": [
+                    "food",
+                    "herbal products",
+                    "supplements"
+                ]
+            },
+            {
+                "id": "SPS-ID-2024-005",
+                "type": "SPS",
+                "description": "Indonesian National Standard (SNI) compliance for rice imports",
+                "severity": "high",
+                "affected_products": [
+                    "rice",
+                    "grains"
+                ]
+            }
+        ],
+        "tbt_barriers": [
+            {
+                "id": "TBT-ID-2024-001",
+                "type": "TBT",
+                "description": "Bahasa Indonesia labeling mandatory on all consumer products",
+                "severity": "medium",
+                "affected_products": [
+                    "all consumer goods"
+                ]
+            }
+        ],
+        "de_minimis_usd": 3,
+        "avg_clearance_days": 5
+    },
+    "Thailand": {
+        "country_code": "TH",
+        "friction_base": 35,
+        "sps_alerts": [
+            {
+                "id": "SPS-TH-2024-001",
+                "type": "SPS",
+                "description": "Thai FDA notification required for food/cosmetic imports",
+                "severity": "medium",
+                "affected_products": [
+                    "food",
+                    "cosmetics",
+                    "traditional medicine"
+                ]
+            }
+        ],
+        "tbt_barriers": [
+            {
+                "id": "TBT-TH-2024-002",
+                "type": "TBT",
+                "description": "Thai Industrial Standards Institute (TISI) certification for electronics",
+                "severity": "medium",
+                "affected_products": [
+                    "electronics",
+                    "electrical goods"
+                ]
+            }
+        ],
+        "de_minimis_usd": 40,
+        "avg_clearance_days": 4
+    },
+    "Philippines": {
+        "country_code": "PH",
+        "friction_base": 38,
+        "sps_alerts": [
+            {
+                "id": "SPS-PH-2024-001",
+                "type": "SPS",
+                "description": "Bureau of Plant Industry (BPI) phytosanitary certificate for agricultural products",
+                "severity": "medium",
+                "affected_products": [
+                    "agricultural products",
+                    "fresh produce"
+                ]
+            }
+        ],
+        "tbt_barriers": [
+            {
+                "id": "TBT-PH-2024-001",
+                "type": "TBT",
+                "description": "Import commodity clearance requires Bureau of Customs pre-entry processing",
+                "severity": "medium",
+                "affected_products": [
+                    "all imports"
+                ]
+            }
+        ],
+        "de_minimis_usd": 200,
+        "avg_clearance_days": 6
+    },
+    "Vietnam": {
+        "country_code": "VN",
+        "friction_base": 40,
+        "sps_alerts": [
+            {
+                "id": "SPS-VN-2024-003",
+                "type": "SPS",
+                "description": "Food safety certificate from Ministry of Health required for all food imports",
+                "severity": "high",
+                "affected_products": [
+                    "food",
+                    "beverages",
+                    "agricultural products"
+                ]
+            }
+        ],
+        "tbt_barriers": [
+            {
+                "id": "TBT-VN-2024-001",
+                "type": "TBT",
+                "description": "Vietnamese language labeling and product registration with MoIT",
+                "severity": "medium",
+                "affected_products": [
+                    "consumer goods",
+                    "food"
+                ]
+            }
+        ],
+        "de_minimis_usd": 45,
+        "avg_clearance_days": 5
+    }
+}

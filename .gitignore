@@ -1,0 +1,67 @@
+# ─── Environment Variables (ALL SERVICES) ───
+.env
+.env.local
+.env.production
+.env.staging
+.env.*.local
+
+# ─── Dependencies ───
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+.dist/
+
+# ─── Frontend (Next.js) Build Artifacts ───
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# ─── Backend Runtime Directories ───
+backend/temp_uploads/
+backend/temp_videos/
+backend/models/
+
+# ─── WhatsApp Service Session Data ───
+whatsapp-service/.wwebjs_auth/
+whatsapp-service/.wwebjs_cache/
+
+# ─── IDE & OS ───
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ─── Logs ───
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Temporary & Test Files ───
+backend/test_*.py
+backend/test_out.txt
+backend/error_utf8.txt
+backend/startup_error.txt
+python_path.txt
+
+# ─── Frontend Scratch Files ───
+frontend/stitch_*.html
+frontend/temp_help.txt
+frontend/run_reset.js
+frontend/patch_css.py
+
+# ─── Security ───
+*.pem
+*.key
+*.cert
+
+# ─── Package Lock Files (keep package-lock.json for reproducibility) ───
+yarn.lock
+pnpm-lock.yaml

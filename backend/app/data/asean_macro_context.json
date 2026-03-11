@@ -1,0 +1,50 @@
+{
+  "Singapore": {
+    "gdp_growth_forecast_pct": 2.5,
+    "currency_strength": "Very Strong (SGD to MYR at historic highs)",
+    "import_demand_trends": ["organic agriculture", "heritage handicrafts", "sustainable textiles", "halal snacks"],
+    "sps_strictness": "High",
+    "trade_agreements": ["RCEP", "AFTA", "CPTPP"],
+    "key_opportunity": "Singapore's premium consumer market values traceability and sustainability — Sarawak organic produce carries natural premium."
+  },
+  "Brunei": {
+    "gdp_growth_forecast_pct": 2.1,
+    "currency_strength": "Pegged to SGD (Strong)",
+    "import_demand_trends": ["halal food products", "raw agricultural goods", "traditional medicines"],
+    "sps_strictness": "Moderate",
+    "trade_agreements": ["RCEP", "AFTA"],
+    "key_opportunity": "Small market but high per-capita spending. Halal certification is mandatory — ensure JAKIM halal logo compliance."
+  },
+  "Indonesia": {
+    "gdp_growth_forecast_pct": 5.0,
+    "currency_strength": "Moderate (IDR stable)",
+    "import_demand_trends": ["consumer packaged goods", "clothing", "processed foods", "handicrafts"],
+    "sps_strictness": "Moderate to High (BPOM/Halal required)",
+    "trade_agreements": ["RCEP", "AFTA"],
+    "key_opportunity": "Massive 275M population with growing middle class. West Kalimantan border trade is a low-barrier entry point for Sarawak MSMEs."
+  },
+  "Thailand": {
+    "gdp_growth_forecast_pct": 3.2,
+    "currency_strength": "Moderate (THB relatively stable)",
+    "import_demand_trends": ["tropical fruits", "spices", "ethnic handicrafts", "health supplements"],
+    "sps_strictness": "Moderate",
+    "trade_agreements": ["RCEP", "AFTA"],
+    "key_opportunity": "Thai consumers value exotic Borneo products. Sarawak pepper and wild honey have strong positioning in Bangkok's premium retail."
+  },
+  "Philippines": {
+    "gdp_growth_forecast_pct": 5.8,
+    "currency_strength": "Moderate (PHP gradual depreciation)",
+    "import_demand_trends": ["agricultural products", "dried goods", "textiles", "construction materials"],
+    "sps_strictness": "Low to Moderate",
+    "trade_agreements": ["RCEP", "AFTA"],
+    "key_opportunity": "Fast-growing economy with strong e-commerce adoption. Shopee/Lazada cross-border listings can reach Filipino consumers directly."
+  },
+  "Vietnam": {
+    "gdp_growth_forecast_pct": 6.5,
+    "currency_strength": "Moderate (VND managed float)",
+    "import_demand_trends": ["premium food products", "organic agriculture", "raw materials", "electronics components"],
+    "sps_strictness": "Moderate",
+    "trade_agreements": ["RCEP", "AFTA", "CPTPP"],
+    "key_opportunity": "Fastest-growing ASEAN economy. Vietnam's manufacturing sector drives demand for raw materials. CPTPP membership means preferential tariffs."
+  }
+}

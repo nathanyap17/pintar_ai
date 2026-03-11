@@ -1,0 +1,56 @@
+{
+    "Singapore": {
+        "freight_index": 102,
+        "freight_trend": "stable",
+        "freight_trend_pct": 0.5,
+        "avg_transit_days": 3,
+        "port": "Port of Singapore (PSA)",
+        "shipping_cost_per_kg_myr": 2.80,
+        "last_updated": "2026-03-01"
+    },
+    "Brunei": {
+        "freight_index": 98,
+        "freight_trend": "stable",
+        "freight_trend_pct": -0.2,
+        "avg_transit_days": 2,
+        "port": "Muara Port",
+        "shipping_cost_per_kg_myr": 3.50,
+        "last_updated": "2026-03-01"
+    },
+    "Indonesia": {
+        "freight_index": 118,
+        "freight_trend": "rising",
+        "freight_trend_pct": 4.2,
+        "avg_transit_days": 7,
+        "port": "Tanjung Priok (Jakarta)",
+        "shipping_cost_per_kg_myr": 5.20,
+        "last_updated": "2026-03-01"
+    },
+    "Thailand": {
+        "freight_index": 112,
+        "freight_trend": "rising",
+        "freight_trend_pct": 2.8,
+        "avg_transit_days": 5,
+        "port": "Laem Chabang Port",
+        "shipping_cost_per_kg_myr": 4.50,
+        "last_updated": "2026-03-01"
+    },
+    "Philippines": {
+        "freight_index": 115,
+        "freight_trend": "rising",
+        "freight_trend_pct": 3.5,
+        "avg_transit_days": 6,
+        "port": "Port of Manila (MICT)",
+        "shipping_cost_per_kg_myr": 4.80,
+        "last_updated": "2026-03-01"
+    },
+    "Vietnam": {
+        "freight_index": 108,
+        "freight_trend": "stable",
+        "freight_trend_pct": 1.1,
+        "avg_transit_days": 5,
+        "port": "Cat Lai Port (Ho Chi Minh)",
+        "shipping_cost_per_kg_myr": 4.00,
+        "last_updated": "2026-03-01"
+    }
+}
