@@ -15,6 +15,7 @@ import OnboardingModal from "../../components/OnboardingModal";
 export default function DashboardPage() {
     const { user, isLoaded } = useUser();
     const profile = useQuery(api.profiles.getByClerkId, user?.id ? { clerkId: user.id } : "skip");
+    const dashboardData = useQuery(api.dashboard.getByClerkId, user?.id ? { clerkId: user.id } : "skip");
     const resetOnboarding = useMutation(api.profiles.resetOnboarding);
 
     const [showOnboarding, setShowOnboarding] = useState(false);
@@ -25,7 +26,7 @@ export default function DashboardPage() {
         }
     }, [profile]);
 
-    if (!isLoaded || profile === undefined) {
+    if (!isLoaded || profile === undefined || dashboardData === undefined) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
                 <Activity className="h-10 w-10 text-primary animate-pulse" />
@@ -34,18 +35,18 @@ export default function DashboardPage() {
         );
     }
 
-    const hasAudit = profile?.bankData && profile?.proxyScore;
-    const bankData = (profile?.bankData ?? null) as {
+    const hasAudit = dashboardData?.bankData && dashboardData?.proxyScore;
+    const bankData = (dashboardData?.bankData ?? null) as {
         netCashFlow?: number; dscr?: number; expenseRatio?: number;
         revenueConsistency?: number; adb?: number; overdraftCount?: number;
         monthlyInflow?: number; monthlyOutflow?: number; monthsAnalyzed?: number;
         bounceCount?: number; lowestBalance?: number; avgMonthlyBalance?: number;
         volatility?: number; dsr?: number; extractedAt?: number; amb?: number;
     } | null;
-    const proxyScore = profile?.proxyScore || 0;
-    const auditColor = profile?.auditColor || "amber";
-    const strategicSummary = profile?.strategicSummary || "Awaiting financial data injection. Please complete the onboarding process.";
-    const eligibilityIndex = profile?.eligibilityIndex ?? profile?.eligibilityProbability ?? 0;
+    const proxyScore = dashboardData?.proxyScore || 0;
+    const auditColor = dashboardData?.auditColor || "amber";
+    const strategicSummary = dashboardData?.strategicSummary || "Awaiting financial data injection. Please complete the onboarding process.";
+    const eligibilityIndex = dashboardData?.eligibilityIndex ?? dashboardData?.eligibilityProbability ?? 0;
     
     // Derived values
     const safeNetCashFlow = bankData?.netCashFlow ?? 0;
@@ -55,7 +56,7 @@ export default function DashboardPage() {
     const safeAdb = bankData?.adb ?? 0;
     const safeOverdrafts = bankData?.overdraftCount ?? 0;
     
-    const riskClassification = profile?.riskClassification || (
+    const riskClassification = dashboardData?.riskClassification || (
         proxyScore > 700 ? "LOW RISK" : proxyScore > 500 ? "FAIR RISK" : "HIGH RISK"
     );
 
@@ -121,7 +122,7 @@ export default function DashboardPage() {
                                         <span className={`font-black text-lg tracking-wider uppercase ${
                                             auditColor === 'green' ? 'neon-text-cyan' : auditColor === 'red' ? 'neon-text-red' : 'neon-text-accent'
                                         }`}>
-                                            {profile?.auditStatus || "Not Audited"}
+                                            {dashboardData?.auditStatus || "Not Audited"}
                                         </span>
                                     </div>
                                     <div className="cursor-help text-slate-500 hover:text-white transition-colors">
@@ -186,9 +187,9 @@ export default function DashboardPage() {
                             <div>
                                 <h2 className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Data Integrity</h2>
                                 <div className="flex items-center gap-2">
-                                    <div className={`h-2 w-2 animate-pulse ${profile?.parseConfidence === 'low' ? 'bg-amber-400' : 'bg-primary'}`} style={{ boxShadow: '0 0 10px #00f3ff' }}></div>
+                                    <div className={`h-2 w-2 animate-pulse ${dashboardData?.parseConfidence === 'low' ? 'bg-amber-400' : 'bg-primary'}`} style={{ boxShadow: '0 0 10px #00f3ff' }}></div>
                                     <span className="text-sm font-bold text-white uppercase tracking-wider">
-                                        {profile?.parseConfidence === "low" ? "Limited Data" : profile?.parseConfidence === "partial" ? "Partial Match" : "Full Confidence"}
+                                        {dashboardData?.parseConfidence === "low" ? "Limited Data" : dashboardData?.parseConfidence === "partial" ? "Partial Match" : "Full Confidence"}
                                     </span>
                                 </div>
                             </div>
@@ -297,7 +298,7 @@ export default function DashboardPage() {
                                 <ShieldAlert className="h-4 w-4 text-secondary" /> Drag Factors
                             </h3>
                             <div className="space-y-3">
-                                {(profile?.auditWeaknesses || []).map((weakness, i) => (
+                                {(dashboardData?.auditWeaknesses || []).map((weakness, i) => (
                                     <div key={i} className="bg-secondary/10 border border-secondary/30 p-3 flex items-start gap-3" style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}>
                                         <div className="mt-0.5 h-2 w-2 bg-secondary shadow-[0_0_10px_#ff00ff]"></div>
                                         <div>
@@ -306,7 +307,7 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
                                 ))}
-                                {(!profile?.auditWeaknesses || profile?.auditWeaknesses.length === 0) && (
+                                {(!dashboardData?.auditWeaknesses || dashboardData?.auditWeaknesses.length === 0) && (
                                     <div className="text-sm text-white/50 italic">No drag factors identified yet.</div>
                                 )}
                             </div>
@@ -316,7 +317,7 @@ export default function DashboardPage() {
                         <div className="cyber-panel p-6 lg:p-8 flex flex-col min-h-[280px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-4">Actionable Steps</h3>
                             <div className="space-y-3">
-                                {(profile?.auditOptimizations || []).map((opt, i) => (
+                                {(dashboardData?.auditOptimizations || []).map((opt, i) => (
                                     <div key={i} className="block bg-primary/5 hover:bg-primary/10 border border-primary/30 p-3 transition-colors group cursor-pointer" style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}>
                                         <div className="flex justify-between items-center mb-1">
                                             <p className="text-sm font-bold text-white group-hover:text-primary transition-colors uppercase tracking-wider">{opt.title}</p>
@@ -325,7 +326,7 @@ export default function DashboardPage() {
                                         <p className="text-xs text-primary/70 ">{opt.steps[0] || "Execute recommended mitigation strategies."}</p>
                                     </div>
                                 ))}
-                                {(!profile?.auditOptimizations || profile?.auditOptimizations.length === 0) && (
+                                {(!dashboardData?.auditOptimizations || dashboardData?.auditOptimizations.length === 0) && (
                                     <div className="block bg-primary/5 border border-primary/30 p-3" style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}>
                                         <div className="text-sm text-white/50 italic">Run analysis to see actionable steps.</div>
                                     </div>

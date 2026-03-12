@@ -82,7 +82,7 @@ export default function OnboardingModal({ isOpen = false, onClose }: { isOpen?: 
     const profile = useQuery(api.profiles.getByClerkId, clerkId ? { clerkId } : "skip");
     const upsertProfile = useMutation(api.profiles.upsert);
     const completeOnboarding = useMutation(api.profiles.completeOnboarding);
-    const updateBankData = useMutation(api.profiles.updateBankData);
+    const updateBankData = useMutation(api.dashboard.upsertBankData);
 
     // Wizard state
     const [step, setStep] = useState(1);

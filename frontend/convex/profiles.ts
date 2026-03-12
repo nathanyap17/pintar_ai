@@ -4,6 +4,7 @@ import { v } from "convex/values";
 /**
  * User Profiles — Convex Functions
  * Links Clerk user IDs to WhatsApp phone numbers + MSME onboarding data.
+ * Financial/audit data is now stored in the `dashboard` table.
  */
 
 // Get profile by phone number (used by WhatsApp webhook)
@@ -132,7 +133,7 @@ export const updatePhone = mutation({
 export const completeOnboarding = mutation({
     args: {
         clerkId: v.string(),
-        tier: v.string(), // "incubator" | "formalized"
+        tier: v.string(),
     },
     handler: async (ctx, { clerkId, tier }) => {
         const profile = await ctx.db
@@ -159,104 +160,5 @@ export const resetOnboarding = mutation({
             .first();
         if (!profile) throw new Error("Profile not found");
         await ctx.db.patch(profile._id, { onboardingComplete: false });
-    },
-});
-
-// Save bank data extracted by AI + computed dashboard metrics + audit results
-export const updateBankData = mutation({
-    args: {
-        clerkId: v.string(),
-        bankData: v.object({
-            adb: v.number(),
-            amb: v.optional(v.number()),
-            dsr: v.number(),
-            volatility: v.number(),
-            monthsAnalyzed: v.optional(v.number()),
-            extractedAt: v.number(),
-            // Extended metrics
-            monthlyInflow: v.optional(v.number()),
-            monthlyOutflow: v.optional(v.number()),
-            bounceCount: v.optional(v.number()),
-            lowestBalance: v.optional(v.number()),
-            netCashFlow: v.optional(v.number()),
-            dscr: v.optional(v.number()),
-            expenseRatio: v.optional(v.number()),
-            overdraftCount: v.optional(v.number()),
-            revenueConsistency: v.optional(v.number()),
-            avgMonthlyBalance: v.optional(v.number()),
-        }),
-        proxyScore: v.number(),
-        eligibilityVerdict: v.optional(v.string()),
-        eligibilityProbability: v.optional(v.number()),
-        eligibilityWeaknesses: v.optional(v.array(v.string())),
-        // Audit fields
-        auditStatus: v.optional(v.string()),
-        auditColor: v.optional(v.string()),
-        auditDate: v.optional(v.string()),
-        strategicSummary: v.optional(v.string()),
-        eligibilityIndex: v.optional(v.number()),
-        riskClassification: v.optional(v.string()),
-        auditWeaknesses: v.optional(v.array(v.object({
-            title: v.string(),
-            description: v.string(),
-            dragPct: v.number(),
-        }))),
-        auditOptimizations: v.optional(v.array(v.object({
-            title: v.string(),
-            steps: v.array(v.string()),
-            targetWeakness: v.string(),
-        }))),
-        parseConfidence: v.optional(v.string()),
-    },
-    handler: async (ctx, args) => {
-        const profile = await ctx.db
-            .query("profiles")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-            .first();
-
-        if (!profile) throw new Error("Profile not found");
-
-        const updates: Record<string, unknown> = {
-            bankData: args.bankData,
-            proxyScore: args.proxyScore,
-        };
-
-        // Legacy eligibility fields
-        if (args.eligibilityVerdict !== undefined) updates.eligibilityVerdict = args.eligibilityVerdict;
-        if (args.eligibilityProbability !== undefined) updates.eligibilityProbability = args.eligibilityProbability;
-        if (args.eligibilityWeaknesses !== undefined) updates.eligibilityWeaknesses = args.eligibilityWeaknesses;
-
-        // Audit fields
-        if (args.auditStatus !== undefined) updates.auditStatus = args.auditStatus;
-        if (args.auditColor !== undefined) updates.auditColor = args.auditColor;
-        if (args.auditDate !== undefined) updates.auditDate = args.auditDate;
-        if (args.strategicSummary !== undefined) updates.strategicSummary = args.strategicSummary;
-        if (args.eligibilityIndex !== undefined) updates.eligibilityIndex = args.eligibilityIndex;
-        if (args.riskClassification !== undefined) updates.riskClassification = args.riskClassification;
-        if (args.auditWeaknesses !== undefined) updates.auditWeaknesses = args.auditWeaknesses;
-        if (args.auditOptimizations !== undefined) updates.auditOptimizations = args.auditOptimizations;
-        if (args.parseConfidence !== undefined) updates.parseConfidence = args.parseConfidence;
-
-        await ctx.db.patch(profile._id, updates);
-        return profile._id;
-    },
-});
-
-// Update proxy score (recalculated from WhatsApp data or bank data)
-export const updateProxyScore = mutation({
-    args: {
-        clerkId: v.string(),
-        proxyScore: v.number(),
-    },
-    handler: async (ctx, { clerkId, proxyScore }) => {
-        const profile = await ctx.db
-            .query("profiles")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
-            .first();
-
-        if (!profile) throw new Error("Profile not found");
-
-        await ctx.db.patch(profile._id, { proxyScore });
-        return profile._id;
     },
 });

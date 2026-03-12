@@ -10,9 +10,11 @@
 
 import type * as admin from "../admin.js";
 import type * as compliance from "../compliance.js";
+import type * as dashboard from "../dashboard.js";
 import type * as export_queries from "../export_queries.js";
 import type * as ledgers from "../ledgers.js";
 import type * as listings from "../listings.js";
+import type * as migrations from "../migrations.js";
 import type * as profiles from "../profiles.js";
 
 import type {
@@ -24,9 +26,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   compliance: typeof compliance;
+  dashboard: typeof dashboard;
   export_queries: typeof export_queries;
   ledgers: typeof ledgers;
   listings: typeof listings;
+  migrations: typeof migrations;
   profiles: typeof profiles;
 }>;
 

@@ -14,7 +14,17 @@ export const resetUser = mutation({
             await ctx.db.delete(profile._id);
         }
 
-        // 2. Delete Shadow Ledgers
+        // 2. Delete Dashboard
+        const dashboardRecord = await ctx.db
+            .query("dashboard")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+            .first();
+
+        if (dashboardRecord) {
+            await ctx.db.delete(dashboardRecord._id);
+        }
+
+        // 3. Delete Shadow Ledgers
         const ledgers = await ctx.db
             .query("shadow_ledgers")
             .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
@@ -23,7 +33,7 @@ export const resetUser = mutation({
             await ctx.db.delete(l._id);
         }
 
-        // 3. Delete Product Listings
+        // 4. Delete Product Listings
         const listings = await ctx.db
             .query("product_listings")
             .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
@@ -32,7 +42,7 @@ export const resetUser = mutation({
             await ctx.db.delete(l._id);
         }
 
-        // 4. Delete Export Queries
+        // 5. Delete Export Queries
         const queries = await ctx.db
             .query("export_queries")
             .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
@@ -41,24 +51,15 @@ export const resetUser = mutation({
             await ctx.db.delete(q._id);
         }
 
-        // 5. Delete Ad Projects
-        const ads = await ctx.db
-            .query("ad_projects")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-            .collect();
-        for (const a of ads) {
-            await ctx.db.delete(a._id);
-        }
-
         return {
             status: "success",
             message: `Reset complete for ${args.clerkId}`,
             deleted: {
                 profile: profile ? 1 : 0,
+                dashboard: dashboardRecord ? 1 : 0,
                 ledgers: ledgers.length,
                 listings: listings.length,
                 queries: queries.length,
-                ads: ads.length
             }
         };
     },
