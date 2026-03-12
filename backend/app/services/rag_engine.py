@@ -50,8 +50,11 @@ async def search_similar_documents(
     For hackathon demo: if Convex is not configured, returns empty results
     gracefully so the LLM can still generate guidance from its training data.
     """
+    from starlette.concurrency import run_in_threadpool
+
     try:
-        query_embedding = embed_text(query)
+        # Run CPU-heavy synchronous embedding model in a background thread
+        query_embedding = await run_in_threadpool(embed_text, query)
     except Exception as e:
         logger.error(f"Embedding model failed: {e}")
         return []
