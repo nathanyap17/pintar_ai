@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
     return (
-        <div className="landing-page bg-[#050804] text-slate-100 selection:bg-[#39FF14] selection:text-black">
+        <div className="landing-page bg-[#050804] text-slate-100 selection:bg-[#39FF14] selection:text-black scroll-smooth">
             <style dangerouslySetInnerHTML={{
                 __html: `
         @keyframes spin {
@@ -23,9 +23,9 @@ export default function LandingPage() {
                             <h1 className="text-2xl font-bold tracking-tighter text-[#39FF14] brand-font"><span className="text-white uppercase">PINTAR</span>.ai</h1>
                         </div>
                         <nav className="hidden md:flex items-center gap-10">
-                            <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#">feature</a>
-                            <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#">docs</a>
-                            <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#">SDG Goals</a>
+                            <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#features">Features</a>
+                            <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#docs">Docs</a>
+                            <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#sdg-goals">SDG Goals</a>
                         </nav>
                         <div className="flex items-center gap-4">
                             <button className="px-5 py-2 text-xs font-bold border border-[#39FF14] text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all rounded uppercase brand-font"><Link href="/sign-in">Login</Link></button>
@@ -97,7 +97,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </section>
-                    <section className="py-24 px-6 bg-[#0A0F08]/50 relative border-y border-[#39FF14]/10">
+                    <section id="features" className="py-24 px-6 bg-[#0A0F08]/50 relative border-y border-[#39FF14]/10">
                         <div className="max-w-7xl mx-auto">
                             <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                                 <div>
@@ -159,7 +159,7 @@ export default function LandingPage() {
                                         <span className="material-symbols-outlined text-[#39FF14]">movie_edit</span>
                                     </div>
                                     <h4 className="text-lg font-bold mb-3 text-white brand-font uppercase">VernStudio</h4>
-                                    <p className="text-slate-400 text-xs leading-relaxed mb-6">Snap & Sell 2.0 - Generate 8s vertical video ads with Bario Rice and local craft showcases instantly.</p>
+                                    <p className="text-slate-400 text-xs leading-relaxed mb-6">Snap & sell - multi-agent orchestrated video production team to generate cinematic ads video.</p>
                                     <div className="aspect-9/16 h-32 mx-auto bg-slate-900 rounded border border-[#39FF14]/20 overflow-hidden relative">
                                         <div className="absolute inset-0 bg-linear-to-t from-[#39FF14]/20 to-transparent"></div>
                                         <div className="absolute bottom-2 left-2 right-2 h-1 bg-white/20 rounded-full">
@@ -173,7 +173,7 @@ export default function LandingPage() {
                                         <span className="material-symbols-outlined text-[#39FF14]">chat_bubble</span>
                                     </div>
                                     <h4 className="text-lg font-bold mb-3 text-white brand-font uppercase">WhatsApp Automation</h4>
-                                    <p className="text-slate-400 text-xs leading-relaxed mb-6">Import invoice from customer</p>
+                                    <p className="text-slate-400 text-xs leading-relaxed mb-6">Finance tracking automation via Whatsapp, revolutionising conventional bookkeeping.</p>
                                     <div className="space-y-2 opacity-50 text-[10px]">
                                         <div className="p-2 bg-slate-800 rounded ml-4 border-l-2 border-[#39FF14]">Order: 5kg Black Rice</div>
                                         <div className="p-2 bg-slate-900 rounded mr-4 border-r-2 border-slate-700">Importing invoice from customer...</div>
@@ -196,7 +196,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </section>
-                    <section className="py-24 px-6 border-t border-[#39FF14]/10">
+                    <section id="sdg-goals" className="py-24 px-6 border-t border-[#39FF14]/10">
                         <div className="max-w-7xl mx-auto">
                             <div className="text-center mb-16">
                                 <h2 className="text-[#39FF14] font-bold tracking-[0.3em] uppercase mb-4 brand-font text-xs">Social Impact</h2>
@@ -227,7 +227,7 @@ export default function LandingPage() {
                             </div>
                         </div>
                     </section>
-                    <section className="py-24 px-6 relative">
+                    <section id="docs" className="py-24 px-6 relative">
                         <div className="max-w-4xl mx-auto">
                             <div className="glass-panel rounded-lg border-2 border-[#39FF14]/30 overflow-hidden shadow-[0_0_30px_rgba(57,255,20,0.1)]">
                                 <div className="bg-[#39FF14]/10 border-b border-[#39FF14]/20 px-4 py-2 flex items-center justify-between">
