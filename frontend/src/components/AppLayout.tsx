@@ -5,7 +5,7 @@ import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
 import AuthGuard from "@/components/AuthGuard";
 import { useState } from "react";
-import { Box, Search, Menu, X, Clock } from "lucide-react";
+import { Search, Menu, X, Clock } from "lucide-react";
 import { GlitchText } from "./GlitchText";
 
 const NAV_ITEMS = [
@@ -43,8 +43,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="flex items-center justify-between px-6 h-full w-full">
                         <div className="flex items-center gap-10 relative z-10">
                             <Link href="/dashboard" className="flex items-center gap-3 group cursor-pointer">
-                                <div className="flex h-10 w-10 items-center justify-center bg-primary/10 border border-primary shadow-[0_0_15px_rgba(0,255,136,0.2)] group-hover:bg-primary/20 transition-all cyber-chamfer-sm">
-                                    <Box className="text-primary h-5 w-5" />
+                                <div className="flex items-center justify-center">
+                                    <img alt="PINTAR.ai Logo" className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]" src="/logo.png" />
                                 </div>
                                 <GlitchText
                                     text="PINTAR.ai"

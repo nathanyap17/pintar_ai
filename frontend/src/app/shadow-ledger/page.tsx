@@ -5,11 +5,11 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import axios from "axios";
-import { 
-  UploadCloud, MessageSquare, Receipt, TrendingUp, 
-  Brain, Wallet, DollarSign, Calendar, ArrowUpRight, 
-  Smartphone, Image as ImageIcon, Zap, ShieldCheck,
-  PauseCircle, PlayCircle, Activity, RotateCcw, AlertTriangle, X
+import {
+    UploadCloud, MessageSquare, Receipt, TrendingUp,
+    Brain, Wallet, DollarSign, Calendar, ArrowUpRight,
+    Smartphone, Image as ImageIcon, Zap, ShieldCheck,
+    PauseCircle, PlayCircle, Activity, RotateCcw, AlertTriangle, X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { GlitchText } from "@/components/GlitchText";
@@ -194,7 +194,7 @@ export default function ShadowLedgerPage() {
     const projectionData = useMemo(() => {
         const finalTarget = predictiveData?.predicted_30d_revenue_myr || 5100;
         const currentTarget = predictiveData?.current_month_revenue_myr || 4250;
-        
+
         return [
             { day: '1', actual: currentTarget * 0.1, projected: finalTarget * 0.1 },
             { day: '5', actual: currentTarget * 0.3, projected: finalTarget * 0.25 },
@@ -216,23 +216,21 @@ export default function ShadowLedgerPage() {
     return (
         <main className="relative flex flex-1 flex-col items-center overflow-hidden px-6 py-10 lg:px-16">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 h-96 w-[800px] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
-            
+
             <div className="z-10 w-full max-w-7xl flex flex-col gap-8">
-                
+
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2 relative py-4">
                     <div className="scanlines-overlay"></div>
                     <div className="relative z-10">
-                        <GlitchText
-                            as="h1"
-                            text="Shadow Ledger"
-                            className="text-4xl lg:text-5xl font-black tracking-[0.3em] text-white mb-2 uppercase glitch-text drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                        />
+                        <h1 className="font-heading text-5xl md:text-6xl text-white glitch-text tracking-[0.4em] opacity-90 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+                            SHADOW LEDGER
+                        </h1>
                         <p className="text-[10px] tracking-[0.3em] text-primary font-bold uppercase">Automated Cash Flow Analyzer for Unbanked MSMEs</p>
                     </div>
                     <div className="flex items-center gap-3 relative z-10">
                         {/* Factory Reset Button */}
-                        <button 
+                        <button
                             onClick={() => setShowResetModal(true)}
                             className="flex items-center gap-2 px-4 py-2 border bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 transition-all cursor-pointer"
                             style={{ clipPath: CHAMFER }}
@@ -240,13 +238,12 @@ export default function ShadowLedgerPage() {
                             <RotateCcw className="h-4 w-4" />
                             <span className="text-xs font-bold uppercase tracking-wider ">Reset</span>
                         </button>
-                        <button 
+                        <button
                             onClick={() => setIsFrozen(!isFrozen)}
-                            className={`flex items-center gap-2 px-4 py-2 border transition-all cursor-pointer ${
-                                isFrozen 
-                                ? 'bg-red-500/10 border-red-500/50 text-red-400 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]' 
+                            className={`flex items-center gap-2 px-4 py-2 border transition-all cursor-pointer ${isFrozen
+                                ? 'bg-red-500/10 border-red-500/50 text-red-400 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
                                 : 'bg-secondary/10 border-secondary/50 text-secondary hover:bg-secondary/20 shadow-[0_0_10px_rgba(0,255,136,0.1)]'
-                            }`}
+                                }`}
                             style={{ clipPath: CHAMFER }}
                         >
                             {isFrozen ? <PauseCircle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
@@ -284,11 +281,10 @@ export default function ShadowLedgerPage() {
                             <button
                                 onClick={handleFactoryReset}
                                 disabled={resetInput !== "RESET" || resetting}
-                                className={`w-full py-2.5 text-xs font-bold uppercase tracking-wider  border transition-all ${
-                                    resetInput === "RESET" 
-                                    ? 'bg-destructive/20 border-destructive text-destructive hover:bg-destructive/40 cursor-pointer' 
+                                className={`w-full py-2.5 text-xs font-bold uppercase tracking-wider  border transition-all ${resetInput === "RESET"
+                                    ? 'bg-destructive/20 border-destructive text-destructive hover:bg-destructive/40 cursor-pointer'
                                     : 'bg-white/5 border-white/20 text-white/30 cursor-not-allowed'
-                                }`}
+                                    }`}
                                 style={{ clipPath: CHAMFER }}
                             >
                                 {resetting ? "Deleting..." : "Confirm Factory Reset"}
@@ -319,7 +315,7 @@ export default function ShadowLedgerPage() {
                                     <ArrowUpRight className="h-3 w-3" /> {momGrowth > 0 ? "+" : ""}{momGrowth.toFixed(1)}% vs last month
                                 </p>
                             </div>
-                            
+
                             <div className="cyber-panel p-6 lg:p-8 border-t-2 border-t-secondary flex flex-col justify-center min-h-[160px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                 <div className="flex justify-between items-start mb-3">
                                     <p className="text-xs text-secondary/80 uppercase tracking-wider font-bold ">Total Transactions</p>
@@ -372,7 +368,7 @@ export default function ShadowLedgerPage() {
                                     <span>More</span>
                                 </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-7 gap-2 sm:gap-3">
                                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
                                     <div key={day} className="text-center text-[10px] font-bold text-primary/50 uppercase tracking-wider mb-2 ">{day}</div>
@@ -385,7 +381,7 @@ export default function ShadowLedgerPage() {
                                     tile.isFuture ? (
                                         <div key={tile.day} className="aspect-square"></div>
                                     ) : (
-                                        <div 
+                                        <div
                                             key={tile.day}
                                             className={`aspect-square border transition-all hover:scale-110 cursor-pointer relative ${getHeatmapColor(tile.income, tile.isPast, tile.isToday)}`}
                                             onMouseEnter={() => setHoveredTile(tile.day)}
@@ -442,7 +438,7 @@ export default function ShadowLedgerPage() {
 
                     {/* Input Canvas & Manual Overrides (Right Column) */}
                     <div className="lg:col-span-4 flex flex-col gap-6">
-                        
+
                         {/* WhatsApp Link Shortcut */}
                         {!isDemoAccount && (
                             <LinkDevice />
@@ -454,7 +450,7 @@ export default function ShadowLedgerPage() {
                             </div>
                         )}
 
-                        <div 
+                        <div
                             className={`cyber-panel p-6 lg:p-8 flex flex-col items-center justify-center text-center border-2 border-dashed transition-all cursor-pointer ${isDragging ? 'border-primary bg-primary/10' : 'border-primary/30 hover:border-primary'}`}
                             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                             onDragLeave={() => setIsDragging(false)}
@@ -479,9 +475,9 @@ export default function ShadowLedgerPage() {
                             <p className="text-xs text-primary/60 mb-4 max-w-[200px] leading-relaxed ">
                                 Upload WhatsApp screenshots or receipts to map into the Shadow Ledger via Agentic Extraction.
                             </p>
-                            
+
                             {imagePreview && (
-                                <button 
+                                <button
                                     onClick={(e) => { e.stopPropagation(); handleAnalyze(); }}
                                     disabled={loadingUpload}
                                     className="w-full py-2.5 cyber-button text-xs font-bold uppercase"
@@ -515,7 +511,7 @@ export default function ShadowLedgerPage() {
                                 <Brain className="text-secondary h-5 w-5" />
                                 <h3 className="font-bold text-secondary uppercase text-xs tracking-wider  text-left">AI Directives</h3>
                             </div>
-                            
+
                             <div className="space-y-4">
                                 {loadingPredictions ? (
                                     Array.from({ length: 3 }).map((_, i) => (
@@ -526,7 +522,7 @@ export default function ShadowLedgerPage() {
                                     ))
                                 ) : predictiveData?.strategic_advice ? predictiveData.strategic_advice.map((advice, i) => (
                                     <div key={i} className={`p-4 border ${i % 2 === 0 ? 'bg-secondary/10 border-secondary/30' : 'bg-primary/5 border-primary/20'}`} style={{ clipPath: CHAMFER }}>
-                                        <p className={`text-[10px] font-bold ${i % 2 === 0 ? 'text-secondary' : 'text-primary'} uppercase tracking-wider mb-1 `}>Insight #{i+1}</p>
+                                        <p className={`text-[10px] font-bold ${i % 2 === 0 ? 'text-secondary' : 'text-primary'} uppercase tracking-wider mb-1 `}>Insight #{i + 1}</p>
                                         <p className="text-xs text-white/80 leading-relaxed ">
                                             {advice}
                                         </p>
@@ -553,7 +549,7 @@ export default function ShadowLedgerPage() {
                             <div className="flex items-center gap-1"><div className="w-2 h-2 bg-primary shadow-[0_0_5px_#00f3ff]"></div> Projected</div>
                         </div>
                     </div>
-                    
+
                     {!hasStarted && !predictiveData ? (
                         <div className="h-[250px] flex flex-col items-center justify-center border border-primary/20" style={{ clipPath: CHAMFER }}>
                             <UploadCloud className="h-10 w-10 text-primary/20 mb-3" />
@@ -566,18 +562,18 @@ export default function ShadowLedgerPage() {
                                 <AreaChart data={projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#ff00ff" stopOpacity={0.4}/>
-                                            <stop offset="95%" stopColor="#ff00ff" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#ff00ff" stopOpacity={0.4} />
+                                            <stop offset="95%" stopColor="#ff00ff" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#00f3ff" stopOpacity={0.4}/>
-                                            <stop offset="95%" stopColor="#00f3ff" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#00f3ff" stopOpacity={0.4} />
+                                            <stop offset="95%" stopColor="#00f3ff" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,243,255,0.1)" vertical={false} />
                                     <XAxis dataKey="day" stroke="rgba(0,243,255,0.5)" fontSize={10} tickMargin={10} fontFamily="monospace" />
                                     <YAxis stroke="rgba(0,243,255,0.5)" fontSize={10} tickFormatter={(value) => `${value}`} fontFamily="monospace" />
-                                    <RechartsTooltip 
+                                    <RechartsTooltip
                                         contentStyle={{ backgroundColor: 'rgba(5, 3, 10, 0.9)', borderColor: 'rgba(0, 243, 255, 0.3)', fontFamily: 'monospace', fontSize: '12px', color: '#fff' }}
                                         itemStyle={{ color: '#00f3ff' }}
                                     />

@@ -3,20 +3,20 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import axios from "axios";
-import { 
-  UploadCloud, Mic, Image as ImageIcon, Video, 
-  Download, Share2, Play, Loader2, CheckCircle2,
-  Sparkles, Layers, Volume2, Type
+import {
+    UploadCloud, Mic, Image as ImageIcon, Video,
+    Download, Share2, Play, Loader2, CheckCircle2,
+    Sparkles, Layers, Volume2, Type
 } from 'lucide-react';
 import { GlitchText } from "@/components/GlitchText";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const AGENT_STEPS = [
-  { id: 1, name: 'Vision Agent', desc: 'Analyzing product features & context', icon: ImageIcon },
-  { id: 2, name: 'Audio Agent', desc: 'Transcribing & enhancing voiceover', icon: Volume2 },
-  { id: 3, name: 'Copywriter Agent', desc: 'Generating dynamic subtitles', icon: Type },
-  { id: 4, name: 'Director Agent', desc: 'Compositing video & effects', icon: Layers },
+    { id: 1, name: 'Vision Agent', desc: 'Analyzing product features & context', icon: ImageIcon },
+    { id: 2, name: 'Audio Agent', desc: 'Transcribing & enhancing voiceover', icon: Volume2 },
+    { id: 3, name: 'Copywriter Agent', desc: 'Generating dynamic subtitles', icon: Type },
+    { id: 4, name: 'Director Agent', desc: 'Compositing video & effects', icon: Layers },
 ];
 
 export default function SnapSellPage() {
@@ -136,7 +136,7 @@ export default function SnapSellPage() {
                     animFrameRef.current = null;
                 }
                 if (audioContextRef.current) {
-                    audioContextRef.current.close().catch(() => {});
+                    audioContextRef.current.close().catch(() => { });
                     audioContextRef.current = null;
                 }
 
@@ -180,7 +180,7 @@ export default function SnapSellPage() {
         setVideoCaption(null);
         setVideoUrl(null);
         setError("");
-        
+
         // Mock multi-agent pipeline UI progression
         setCurrentAgentStep(0);
         let mockStep = 0;
@@ -247,20 +247,15 @@ export default function SnapSellPage() {
         <main className="relative flex flex-1 flex-col items-center overflow-hidden px-6 py-10 lg:px-16 bg-[#05030a]">
             {/* Background Decorative Elements */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 h-96 w-[800px] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
-            
+
             <div className="z-10 w-full max-w-5xl flex flex-col gap-8">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative py-4">
                     <div className="scanlines-overlay"></div>
                     <div className="relative z-10">
-                        <GlitchText
-                            as="h1"
-                            text="VernStudio"
-                            className="text-4xl lg:text-5xl font-black tracking-[0.3em] text-white mb-2 uppercase glitch-text drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] flex items-center gap-3"
-                        >
-                            <Sparkles className="h-7 w-7 text-primary" />
-                            VernStudio
-                        </GlitchText>
+                        <h1 className="font-heading text-5xl md:text-6xl text-white glitch-text tracking-[0.4em] opacity-90 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+                            VERNSTUDIO
+                        </h1>
                         <p className="text-[10px] tracking-[0.3em] text-primary font-bold uppercase">AI-Powered Multilingual Video Ads Generator</p>
                     </div>
                 </div>
@@ -282,7 +277,7 @@ export default function SnapSellPage() {
                                     <div className="z-10 flex flex-col items-center">
                                         <CheckCircle2 className="h-12 w-12 text-violet-400 mb-2" />
                                         <p className="text-sm font-bold text-white uppercase tracking-widest">Image Loaded</p>
-                                        <button 
+                                        <button
                                             onClick={() => { setPhotoPreview(null); setPhotoFile(null); }}
                                             className="mt-4 px-4 py-2 cyber-button-secondary text-xs"
                                         >
@@ -329,13 +324,12 @@ export default function SnapSellPage() {
                                     onMouseLeave={stopRecording}
                                     onTouchStart={startRecording}
                                     onTouchEnd={stopRecording}
-                                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
-                                        isRecording 
-                                        ? 'bg-secondary scale-110 shadow-[0_0_30px_rgba(255,0,255,0.6)] animate-pulse' 
-                                        : hasAudio 
+                                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording
+                                        ? 'bg-secondary scale-110 shadow-[0_0_30px_rgba(255,0,255,0.6)] animate-pulse'
+                                        : hasAudio
                                             ? 'bg-accent/20 border-2 border-accent text-accent'
                                             : 'bg-accent/10 border-2 border-accent/50 text-accent hover:bg-accent/20 hover:scale-105'
-                                    }`}
+                                        }`}
                                 >
                                     {hasAudio && !isRecording ? (
                                         <CheckCircle2 className="h-10 w-10" />
@@ -343,7 +337,7 @@ export default function SnapSellPage() {
                                         <Mic className={`h-10 w-10 ${isRecording ? 'text-white' : ''}`} />
                                     )}
                                 </button>
-                                
+
                                 <div className="h-6">
                                     {isRecording ? (
                                         <span className="text-secondary font-mono font-bold animate-pulse">
@@ -355,7 +349,7 @@ export default function SnapSellPage() {
                                             {audioUrl && (
                                                 <audio src={audioUrl} controls className="mt-2 h-8 w-full max-w-[200px]" />
                                             )}
-                                            <button 
+                                            <button
                                                 onClick={resetAudio}
                                                 className="text-xs text-accent/60 hover:text-accent mt-2 underline font-mono cursor-pointer"
                                             >
@@ -385,11 +379,10 @@ export default function SnapSellPage() {
                         <button
                             onClick={handleGenerateVideo}
                             disabled={!photoFile || !hasAudio}
-                            className={`px-8 py-4 font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center gap-3 ${
-                                photoFile && hasAudio 
-                                ? 'cyber-button cursor-pointer' 
+                            className={`px-8 py-4 font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center gap-3 ${photoFile && hasAudio
+                                ? 'cyber-button cursor-pointer'
                                 : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/10'
-                            }`}
+                                }`}
                         >
                             <Video className="h-5 w-5" />
                             Generate Video Ad
@@ -401,9 +394,9 @@ export default function SnapSellPage() {
                 {videoStatus === 'processing' && (
                     <div className="cyber-panel p-12 flex flex-col items-center justify-center min-h-[400px] w-full max-w-2xl mx-auto relative overflow-hidden">
                         <div className="absolute inset-0 bg-linear-to-b from-primary/10 to-transparent opacity-50"></div>
-                        
+
                         <Loader2 className="h-16 w-16 text-primary animate-spin mb-8" />
-                        
+
                         <h2 className="text-2xl font-black text-white mb-8 tracking-wider uppercase text-center neon-text-cyan">
                             Multi-Agent Assembly
                         </h2>
@@ -414,20 +407,18 @@ export default function SnapSellPage() {
                                 const isCompleted = index < currentAgentStep;
 
                                 return (
-                                    <div 
-                                        key={step.id} 
-                                        className={`flex items-center gap-4 p-4 border transition-all duration-500 ${
-                                            isActive ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(0,243,255,0.3)] scale-105' :
+                                    <div
+                                        key={step.id}
+                                        className={`flex items-center gap-4 p-4 border transition-all duration-500 ${isActive ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(0,243,255,0.3)] scale-105' :
                                             isCompleted ? 'bg-primary/5 border-primary/30 opacity-70' :
-                                            'bg-white/5 border-white/10 opacity-40'
-                                        }`}
+                                                'bg-white/5 border-white/10 opacity-40'
+                                            }`}
                                         style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
                                     >
-                                        <div className={`w-10 h-10 flex items-center justify-center ${
-                                            isActive ? 'bg-primary text-black animate-pulse' :
+                                        <div className={`w-10 h-10 flex items-center justify-center ${isActive ? 'bg-primary text-black animate-pulse' :
                                             isCompleted ? 'bg-primary/20 text-primary' :
-                                            'bg-white/10 text-white/50'
-                                        }`} style={{ clipPath: 'polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)' }}>
+                                                'bg-white/10 text-white/50'
+                                            }`} style={{ clipPath: 'polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)' }}>
                                             {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <step.icon className="h-5 w-5" />}
                                         </div>
                                         <div className="flex-1">
@@ -454,9 +445,9 @@ export default function SnapSellPage() {
                                 ) : (
                                     photoPreview && <img src={photoPreview} alt="Generated Ad" className="absolute inset-0 w-full h-full object-cover opacity-80" />
                                 )}
-                                
+
                                 <div className="absolute inset-0 bg-linear-to-t from-black/90 via-transparent to-black/30 pointer-events-none transition-opacity duration-300"></div>
-                                
+
                                 <div className={`absolute bottom-6 left-0 right-0 px-4 flex flex-col items-center gap-3 w-full transition-opacity duration-300 z-20 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
                                     <div className="w-full bg-black/70 backdrop-blur-md px-4 py-3 border border-primary/40 pointer-events-auto shadow-[0_0_15px_rgba(0,255,170,0.1)]" style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}>
                                         <p className="text-xs font-bold text-white/90 drop-shadow-md leading-relaxed text-center">
@@ -479,7 +470,7 @@ export default function SnapSellPage() {
                                     )}
                                 </div>
 
-                                <button 
+                                <button
                                     onClick={() => {
                                         if (videoRef.current) {
                                             if (isPlaying) videoRef.current.pause();
@@ -518,7 +509,7 @@ export default function SnapSellPage() {
                                 </button>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={() => {
                                     setVideoStatus('idle');
                                     setPhotoPreview(null);

@@ -133,11 +133,9 @@ export default function CustomsPage() {
                 <div className="mb-6 text-center w-full relative py-4">
                     <div className="scanlines-overlay"></div>
                     <div className="relative z-10">
-                        <GlitchText
-                            as="h1"
-                            text="Compliance Sentinel"
-                            className="text-4xl lg:text-5xl font-black tracking-[0.3em] text-white mb-2 uppercase glitch-text drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
-                        />
+                        <h1 className="font-heading text-5xl md:text-6xl text-white glitch-text tracking-[0.4em] opacity-90 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+                            COMPLIANCE SENTINEL
+                        </h1>
                         <p className="text-[10px] tracking-[0.3em] text-primary font-bold uppercase">
                             Global Trade Monitoring & Real-time Risk Assessment
                         </p>
@@ -337,11 +335,10 @@ export default function CustomsPage() {
                                             <h3 className="font-bold text-secondary uppercase text-xs tracking-wider ">Web Grounded</h3>
                                         </div>
                                         <div
-                                            className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold border ${
-                                                result?.web_grounded
-                                                    ? "bg-primary/20 text-primary border-primary/50"
-                                                    : "bg-white/5 text-white/40 border-white/20"
-                                            }`}
+                                            className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold border ${result?.web_grounded
+                                                ? "bg-primary/20 text-primary border-primary/50"
+                                                : "bg-white/5 text-white/40 border-white/20"
+                                                }`}
                                             style={{ clipPath: CHAMFER_SM }}
                                         >
                                             <CheckCircle2 className="h-3 w-3" />

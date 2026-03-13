@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { 
-  CheckCircle2, AlertTriangle, Info, TrendingUp, TrendingDown, 
-  Activity, ShieldAlert, ExternalLink, ArrowRight, BarChart3, 
-  PieChart, AlertCircle
+import {
+    CheckCircle2, AlertTriangle, Info, TrendingUp, TrendingDown,
+    Activity, ShieldAlert, ExternalLink, ArrowRight, BarChart3,
+    PieChart, AlertCircle
 } from 'lucide-react';
 import { GlitchText } from "../../components/GlitchText";
 import OnboardingModal from "../../components/OnboardingModal";
@@ -47,7 +47,7 @@ export default function DashboardPage() {
     const auditColor = dashboardData?.auditColor || "amber";
     const strategicSummary = dashboardData?.strategicSummary || "Awaiting financial data injection. Please complete the onboarding process.";
     const eligibilityIndex = dashboardData?.eligibilityIndex ?? dashboardData?.eligibilityProbability ?? 0;
-    
+
     // Derived values
     const safeNetCashFlow = bankData?.netCashFlow ?? 0;
     const safeDscr = bankData?.dscr ?? 0;
@@ -55,7 +55,7 @@ export default function DashboardPage() {
     const safeRevConsistency = bankData?.revenueConsistency ?? 0;
     const safeAdb = bankData?.adb ?? 0;
     const safeOverdrafts = bankData?.overdraftCount ?? 0;
-    
+
     const riskClassification = dashboardData?.riskClassification || (
         proxyScore > 700 ? "LOW RISK" : proxyScore > 500 ? "FAIR RISK" : "HIGH RISK"
     );
@@ -67,20 +67,16 @@ export default function DashboardPage() {
     return (
         <main className="flex-1 flex flex-col items-center px-6 py-10 lg:px-16 relative overflow-hidden">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[500px] w-[1000px] rounded-full bg-primary/5 blur-[150px] pointer-events-none"></div>
-            
+
             <div className="z-10 w-full max-w-7xl mx-auto space-y-5">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2 relative py-4">
                     <div className="scanlines-overlay"></div>
                     <div className="relative z-10">
-                        <GlitchText
-                            as="h1"
-                            text="Pre-Screening Dashboard"
-                            className="text-4xl lg:text-5xl font-black tracking-[0.3em] text-white mb-2 uppercase glitch-text drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] flex items-center gap-3"
-                        >
+                        <h1 className="font-heading text-5xl md:text-6xl text-white glitch-text tracking-[0.4em] opacity-90 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] flex items-center gap-3">
                             <BarChart3 className="h-7 w-7 text-primary" />
-                            Pre-Screening Dashboard
-                        </GlitchText>
+                            PRE-SCREENING DASHBOARD
+                        </h1>
                         <p className="text-[10px] tracking-[0.3em] text-primary font-bold uppercase">
                             {profile?.businessType || 'Undeclared'} — {profile?.region || 'Unknown Location'} — {profile?.yearsOperating || 0} Years Operating
                         </p>
@@ -104,24 +100,22 @@ export default function DashboardPage() {
 
                 {/* Bento Grid Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                    
+
                     {/* 1. Verdict & Strategic Context (Col Span 8) */}
                     <div className="md:col-span-8 cyber-panel p-8 flex flex-col justify-between">
                         <div className="absolute right-0 top-0 w-64 h-64 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none"></div>
-                        
+
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h2 className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Consolidated Verdict</h2>
                                 <div className="flex items-center gap-3 group relative">
-                                    <div className={`flex items-center gap-2 px-4 py-2 border ${
-                                        auditColor === 'green' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' :
+                                    <div className={`flex items-center gap-2 px-4 py-2 border ${auditColor === 'green' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/50' :
                                         auditColor === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/50' :
-                                        'bg-amber-500/10 text-amber-400 border-amber-500/50'
-                                    }`} style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}>
+                                            'bg-amber-500/10 text-amber-400 border-amber-500/50'
+                                        }`} style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}>
                                         {auditColor === 'green' ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
-                                        <span className={`font-black text-lg tracking-wider uppercase ${
-                                            auditColor === 'green' ? 'neon-text-cyan' : auditColor === 'red' ? 'neon-text-red' : 'neon-text-accent'
-                                        }`}>
+                                        <span className={`font-black text-lg tracking-wider uppercase ${auditColor === 'green' ? 'neon-text-cyan' : auditColor === 'red' ? 'neon-text-red' : 'neon-text-accent'
+                                            }`}>
                                             {dashboardData?.auditStatus || "Not Audited"}
                                         </span>
                                     </div>
@@ -165,7 +159,7 @@ export default function DashboardPage() {
                         {/* Risk Gauge */}
                         <div className="cyber-panel p-6 lg:p-8 flex-1 flex flex-col items-center justify-center relative group">
                             <h2 className="absolute top-6 left-6 text-xs font-bold text-primary uppercase tracking-wider">Proxy CTOS Score</h2>
-                            
+
                             <div className="relative w-40 h-40 mt-4">
                                 <svg viewBox="0 0 100 50" className="w-full h-full overflow-visible">
                                     <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" strokeLinecap="round" />
@@ -176,7 +170,7 @@ export default function DashboardPage() {
                                     <span className={`text-[10px] font-bold uppercase tracking-wider ${proxyScore > 700 ? 'text-primary' : proxyScore > 500 ? 'text-amber-400' : 'text-red-400'}`}>{riskClassification}</span>
                                 </div>
                             </div>
-                            
+
                             <button className="mt-4 text-xs text-primary hover:text-primary/80 font-bold flex items-center gap-1 transition-colors cursor-pointer">
                                 View Score Breakdown <ArrowRight className="h-3 w-3" />
                             </button>
@@ -206,7 +200,7 @@ export default function DashboardPage() {
                             <PieChart className="h-4 w-4 text-primary" /> Core KPI Matrix
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            
+
                             {/* KPI 1 */}
                             <div className={`cyber-panel p-6 lg:p-8 flex flex-col justify-center min-h-[140px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] transition-colors group relative ${safeNetCashFlow >= 5000 ? 'border-primary/50 hover:border-primary' : safeNetCashFlow >= 0 ? 'border-amber-500/50 hover:border-amber-500' : 'border-red-500/50 hover:border-red-500'}`}>
                                 <div className="flex justify-between items-start mb-2 w-full">
@@ -272,7 +266,7 @@ export default function DashboardPage() {
 
                     {/* 4. Diagnostic & Improvement (Col Span 12) */}
                     <div className="md:col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
+
                         {/* Statement Summary Box */}
                         <div className="cyber-panel p-6 lg:p-8 flex flex-col min-h-[280px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-4">Summary ({bankData?.monthsAnalyzed || 1}M)</h3>
