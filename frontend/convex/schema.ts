@@ -77,6 +77,11 @@ export default defineSchema({
             targetWeakness: v.string(),
         }))),
         parseConfidence: v.optional(v.string()),
+        fiveCsAnalysis: v.optional(v.array(v.object({
+            label: v.string(),
+            color: v.string(),
+            summary: v.string(),
+        }))),
         createdAt: v.number(),
     }).index("by_clerk_id", ["clerkId"]),
 

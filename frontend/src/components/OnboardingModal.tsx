@@ -61,6 +61,7 @@ interface BankResult {
     };
     weaknesses?: { title: string; description: string; drag_pct: number }[];
     optimizations?: { title: string; steps: string[]; target_weakness: string }[];
+    five_cs?: { label: string; color: string; summary: string }[];
     parse_confidence?: string;
     statement_summary?: {
         total_inflows: number; total_outflows: number;
@@ -190,6 +191,7 @@ export default function OnboardingModal({ isOpen = false, onClose }: { isOpen?: 
                     targetWeakness: o.target_weakness,
                 })),
                 parseConfidence: data.parse_confidence,
+                fiveCsAnalysis: data.five_cs,
             });
 
             await completeOnboarding({ clerkId, tier: "formalized" });
@@ -275,14 +277,14 @@ export default function OnboardingModal({ isOpen = false, onClose }: { isOpen?: 
                 )}
                 {/* Progress bar */}
                 <div className="ob-progress">
+                    <div className="ob-progress-bar">
+                        <div className="ob-progress-fill" style={{ width: `${((step - 1) / 2) * 100}%` }} />
+                    </div>
                     {[1, 2, 3].map((s) => (
                         <div key={s} className={`ob-progress-dot ${step >= s ? "ob-progress-active" : ""}`}>
                             {step > s ? "✓" : s}
                         </div>
                     ))}
-                    <div className="ob-progress-bar">
-                        <div className="ob-progress-fill" style={{ width: `${((step - 1) / 2) * 100}%` }} />
-                    </div>
                 </div>
 
                 {/* ═══ STEP 1: Business Profile Basics ═══ */}

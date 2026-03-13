@@ -347,6 +347,70 @@ def get_bankability_status(score: int) -> dict:
         }
 
 
+# ─── 5 Cs of Credit Assessment ──────────────────────────────
+
+def compute_five_cs(
+    data: dict,
+    dscr: float = 0,
+    net_cash_flow: float = 0,
+    total_assets: float = 0,
+    business_type: str = "",
+) -> list[dict]:
+    """
+    Derive the 5 C's of Credit from existing bank metrics.
+    Each C returns { label, color (green/amber/red), summary }.
+    """
+    bounces = data.get("bounce_count", 0)
+    overdrafts = data.get("overdraft_count", 0)
+    adb = data.get("adb", 0)
+    volatility = data.get("volatility", 50)
+
+    five_cs = []
+
+    # 1. Character — repayment history / defaults
+    if bounces == 0 and overdrafts == 0:
+        five_cs.append({"label": "Character", "color": "green", "summary": "Good history, no defaults."})
+    elif bounces <= 1 and overdrafts <= 1:
+        five_cs.append({"label": "Character", "color": "amber", "summary": f"{bounces} bounce(s), {overdrafts} overdraft(s) — minor blemish."})
+    else:
+        five_cs.append({"label": "Character", "color": "red", "summary": f"{bounces} bounce(s), {overdrafts} overdraft(s) — high default risk."})
+
+    # 2. Capacity — ability to repay (DSCR + net cash flow)
+    if dscr >= 1.25 and net_cash_flow > 0:
+        five_cs.append({"label": "Capacity", "color": "green", "summary": f"Strong revenue generation. DSCR {dscr}x."})
+    elif dscr >= 1.0 and net_cash_flow > 0:
+        five_cs.append({"label": "Capacity", "color": "amber", "summary": f"Adequate capacity. DSCR {dscr}x — aim for ≥1.25x."})
+    else:
+        five_cs.append({"label": "Capacity", "color": "red", "summary": f"Weak repayment ability. DSCR {dscr}x, NCF RM{net_cash_flow:,.0f}."})
+
+    # 3. Capital — cash reserves (ADB)
+    if adb >= 10000:
+        five_cs.append({"label": "Capital", "color": "green", "summary": f"Healthy reserves. ADB RM{adb:,.0f}."})
+    elif adb >= 3000:
+        five_cs.append({"label": "Capital", "color": "amber", "summary": f"Low cash reserves. ADB RM{adb:,.0f}."})
+    else:
+        five_cs.append({"label": "Capital", "color": "red", "summary": f"Critically low reserves. ADB RM{adb:,.0f}."})
+
+    # 4. Conditions — market/business volatility
+    sector_label = business_type.replace("_", " ").title() if business_type else "Unknown"
+    if volatility < 30:
+        five_cs.append({"label": "Conditions", "color": "green", "summary": f"Stable {sector_label} sector conditions."})
+    elif volatility < 60:
+        five_cs.append({"label": "Conditions", "color": "amber", "summary": f"{sector_label} sector volatility at {volatility}%."})
+    else:
+        five_cs.append({"label": "Conditions", "color": "red", "summary": f"High {sector_label} sector volatility ({volatility}%)."})
+
+    # 5. Collateral — hard asset backing
+    if total_assets >= 50000:
+        five_cs.append({"label": "Collateral", "color": "green", "summary": f"Strong asset backing. RM{total_assets:,.0f} in assets."})
+    elif total_assets >= 10000:
+        five_cs.append({"label": "Collateral", "color": "amber", "summary": f"Moderate collateral. RM{total_assets:,.0f} in assets."})
+    else:
+        five_cs.append({"label": "Collateral", "color": "red", "summary": f"Insufficient hard assets. RM{total_assets:,.0f} declared."})
+
+    return five_cs
+
+
 # ─── Main Analyze Endpoint ──────────────────────────────────
 
 @router.post("/analyze")
@@ -494,7 +558,13 @@ async def analyze_bank_statement(
 
         audit = await call_audit_ai(metrics_for_ai, profile_for_ai)
 
-        # ── Step 6: Assemble full audit response ──
+        # ── Step 6: Compute 5 C's of Credit ──
+        five_cs = compute_five_cs(
+            bank_data, dscr, net_cash_flow,
+            total_assets or 0, business_type or "",
+        )
+
+        # ── Step 7: Assemble full audit response ──
         benchmarks = get_kpi_benchmarks(business_type or "", annual_turnover or 0)
         audit_date = datetime.now().strftime("%b %d, %Y")
 
@@ -578,6 +648,9 @@ async def analyze_bank_statement(
             # Section 04: Weaknesses & Optimizations
             "weaknesses": audit.get("weaknesses", []),
             "optimizations": audit.get("optimizations", []),
+
+            # Section 05: 5 C's of Credit
+            "five_cs": five_cs,
 
             # Legacy fields (backward compat for onboarding)
             "bank_data": {

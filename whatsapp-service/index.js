@@ -126,14 +126,23 @@ io.on('connection', (socket) => {
 
         console.log(`[Session] Start requested for: ${clerkId}`);
 
-        // Check if session already exists and is connected
+        // Check if session already exists
         if (sessions.has(clerkId)) {
             const existing = sessions.get(clerkId);
+            
             if (existing.status === 'connected') {
                 socket.emit('session_status', { status: 'already_connected' });
                 return;
             }
-            // If there's a stale session, destroy it before creating new one
+
+            if (existing.status === 'initializing' || existing.status === 'waiting_qr' || existing.status === 'reconnecting') {
+                console.log(`[Session] Already ${existing.status} for: ${clerkId}, attaching new socket.`);
+                existing.socket = socket; // Update to the new socket connection
+                socket.emit('session_status', { status: existing.status });
+                return;
+            }
+
+            // If there's a failed/disconnected session, destroy it before creating new one
             try { existing.client.destroy(); } catch (_) { /* ignore */ }
         }
 

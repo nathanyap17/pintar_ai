@@ -49,12 +49,13 @@ export default function DashboardPage() {
     const eligibilityIndex = dashboardData?.eligibilityIndex ?? dashboardData?.eligibilityProbability ?? 0;
 
     // Derived values
-    const safeNetCashFlow = bankData?.netCashFlow ?? 0;
-    const safeDscr = bankData?.dscr ?? 0;
-    const safeExpenseRatio = bankData?.expenseRatio ?? 0;
-    const safeRevConsistency = bankData?.revenueConsistency ?? 0;
+    const safeNetCashFlow = bankData?.netCashFlow ?? ((bankData?.monthlyInflow ?? 0) - (bankData?.monthlyOutflow ?? 0));
+    // DSCR = Net Operating Income / Debt Service (assuming RM5,000 base debt if unknown, matching backend)
+    const safeDscr = bankData?.dscr ?? (safeNetCashFlow > 0 ? Number((safeNetCashFlow / 5000).toFixed(2)) : 0);
+    const safeExpenseRatio = bankData?.expenseRatio ?? (bankData?.monthlyInflow && bankData.monthlyInflow > 0 ? Number(((bankData?.monthlyOutflow ?? 0) / bankData.monthlyInflow * 100).toFixed(1)) : 0);
+    const safeRevConsistency = bankData?.revenueConsistency ?? (bankData?.volatility ?? 0) * 100;
     const safeAdb = bankData?.adb ?? 0;
-    const safeOverdrafts = bankData?.overdraftCount ?? 0;
+    const safeOverdrafts = bankData?.overdraftCount ?? (bankData?.bounceCount ?? 0); // fallback to bounceCount for legacy data
 
     const riskClassification = dashboardData?.riskClassification || (
         proxyScore > 700 ? "LOW RISK" : proxyScore > 500 ? "FAIR RISK" : "HIGH RISK"
@@ -124,11 +125,22 @@ export default function DashboardPage() {
                                     </div>
                                     {/* Tooltip */}
                                     <div className="absolute left-0 top-full mt-2 w-80 bg-background-dark border border-white/20 p-4 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                                        <h4 className="text-sm font-bold text-white mb-2 border-b border-white/10 pb-2">5C's of Credit Analysis</h4>
+                                        <h4 className="text-sm font-bold text-white mb-2 border-b border-white/10 pb-2">5C&apos;s of Credit Analysis</h4>
                                         <ul className="text-xs space-y-2 text-slate-300">
-                                            <li><strong className="text-emerald-400">Character:</strong> {hasAudit ? "Good history, no defaults." : "N/A"}</li>
-                                            <li><strong className="text-emerald-400">Capacity:</strong> {safeNetCashFlow > 0 ? "Strong net positive cash flow." : "Negative cash flow limits capacity."}</li>
-                                            <li><strong className="text-amber-400">Capital:</strong> RM{safeAdb.toLocaleString()} Average Daily Balance.</li>
+                                            {(dashboardData?.fiveCsAnalysis ?? [
+                                                { label: "Character", color: (bankData?.bounceCount ?? 0) === 0 && safeOverdrafts === 0 ? "green" : "amber", summary: (bankData?.bounceCount ?? 0) === 0 && safeOverdrafts === 0 ? "Good history, no defaults." : `${bankData?.bounceCount ?? 0} bounce(s), ${safeOverdrafts} overdraft(s).` },
+                                                { label: "Capacity", color: safeDscr >= 1.25 && safeNetCashFlow > 0 ? "green" : safeDscr >= 1.0 ? "amber" : "red", summary: safeNetCashFlow > 0 ? `Strong net positive cash flow. DSCR ${safeDscr}x.` : "Negative cash flow limits capacity." },
+                                                { label: "Capital", color: safeAdb >= 10000 ? "green" : safeAdb >= 3000 ? "amber" : "red", summary: `RM${safeAdb.toLocaleString()} Average Daily Balance.` },
+                                                { label: "Conditions", color: "amber", summary: "Sector conditions — upload data for analysis." },
+                                                { label: "Collateral", color: "red", summary: "Insufficient hard assets — declare assets during onboarding." },
+                                            ]).map((c, i) => (
+                                                <li key={i}>
+                                                    <strong className={c.color === "green" ? "text-emerald-400" : c.color === "amber" ? "text-amber-400" : "text-red-400"}>
+                                                        {c.label}:
+                                                    </strong>{" "}
+                                                    {c.summary}
+                                                </li>
+                                            ))}
                                         </ul>
                                     </div>
                                 </div>
@@ -281,7 +293,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex justify-between items-center pt-2 mt-auto">
                                     <span className="text-sm font-bold text-white  uppercase mt-2">Net Position</span>
-                                    <span className={`text-xl font-black transform scale-y-[1.15] tracking-tight inline-block ${safeNetCashFlow >= 0 ? "text-white neon-text-cyan" : "text-red-400 neon-text-red"}`}>RM {(safeNetCashFlow).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                                    <span className={`text-xl font-black transform scale-y-[1.15] tracking-tight inline-block ${(totalInflows - totalOutflows) >= 0 ? "text-white neon-text-cyan" : "text-red-400 neon-text-red"}`}>RM {(totalInflows - totalOutflows).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                 </div>
                             </div>
                         </div>

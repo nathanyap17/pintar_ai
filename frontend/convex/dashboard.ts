@@ -63,6 +63,11 @@ export const upsertBankData = mutation({
             targetWeakness: v.string(),
         }))),
         parseConfidence: v.optional(v.string()),
+        fiveCsAnalysis: v.optional(v.array(v.object({
+            label: v.string(),
+            color: v.string(),
+            summary: v.string(),
+        }))),
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db
@@ -90,6 +95,7 @@ export const upsertBankData = mutation({
         if (args.auditWeaknesses !== undefined) updates.auditWeaknesses = args.auditWeaknesses;
         if (args.auditOptimizations !== undefined) updates.auditOptimizations = args.auditOptimizations;
         if (args.parseConfidence !== undefined) updates.parseConfidence = args.parseConfidence;
+        if (args.fiveCsAnalysis !== undefined) updates.fiveCsAnalysis = args.fiveCsAnalysis;
 
         if (existing) {
             await ctx.db.patch(existing._id, updates);
