@@ -309,22 +309,22 @@ export default function SnapSellPage() {
                         </div>
 
                         {/* Voice Record Canvas */}
-                        <div className="cyber-panel p-6 flex flex-col items-center justify-center text-center min-h-[300px] relative border-accent/30 hover:border-accent">
-                            <div className="mb-6">
+                        <div className="cyber-panel p-6 flex flex-col items-center justify-center text-center min-h-[280px] relative border-accent/30 hover:border-accent">
+                            <div className="mb-4">
                                 <h3 className="font-bold text-white text-sm mb-2 uppercase tracking-widest">Record Voiceover</h3>
                                 <p className="text-xs text-accent/60 max-w-[250px] leading-relaxed font-mono">
                                     Speak in your local dialect. Our AI will translate, enhance, and subtitle it automatically.
                                 </p>
                             </div>
 
-                            <div className="flex flex-col items-center gap-4">
+                            <div className="flex flex-col items-center gap-3">
                                 <button
                                     onMouseDown={startRecording}
                                     onMouseUp={stopRecording}
                                     onMouseLeave={stopRecording}
                                     onTouchStart={startRecording}
                                     onTouchEnd={stopRecording}
-                                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording
+                                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording
                                         ? 'bg-secondary scale-110 shadow-[0_0_30px_rgba(255,0,255,0.6)] animate-pulse'
                                         : hasAudio
                                             ? 'bg-accent/20 border-2 border-accent text-accent'
@@ -332,13 +332,13 @@ export default function SnapSellPage() {
                                         }`}
                                 >
                                     {hasAudio && !isRecording ? (
-                                        <CheckCircle2 className="h-10 w-10" />
+                                        <CheckCircle2 className="h-7 w-7" />
                                     ) : (
-                                        <Mic className={`h-10 w-10 ${isRecording ? 'text-white' : ''}`} />
+                                        <Mic className={`h-7 w-7 ${isRecording ? 'text-white' : ''}`} />
                                     )}
                                 </button>
 
-                                <div className="h-6">
+                                <div>
                                     {isRecording ? (
                                         <span className="text-secondary font-mono font-bold animate-pulse">
                                             Recording... {formatTime(recordingTime)}
