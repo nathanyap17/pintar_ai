@@ -2,6 +2,10 @@
 
 > 🌏 AI-powered platform empowering ASEAN MSMEs in Sarawak/Borneo to digitize informal trade, reach global markets, and navigate cross-border compliance.
 
+**Pitching Video & Resources:**
+- 🎥 **Pitching Video:** [Watch on YouTube](https://youtu.be/8uRGWUIsi-M)
+- 📁 **Project Assets:** [Google Drive Folder](https://drive.google.com/drive/folders/1i5gGXFUz2kDxa0Wn5t7qN4TFmv-URoiL?usp=drive_link)
+
 ---
 
 ## 1. General Description
