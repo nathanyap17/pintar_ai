@@ -48,34 +48,28 @@ def _reply_twiml(message: str) -> Response:
 
 
 def _classify_intent(text: str) -> tuple[str, float]:
-    """Keyword-based intent classifier (same logic as ledger.py)."""
+    """Keyword-based fallback classifier — PAYMENT_IN or CAPITAL_OUT."""
     text_lower = text.lower()
 
-    payment_kw = [
-        "bayar", "paid", "transfer", "dah bayar", "payment", "rm",
+    inflow_kw = [
+        "bayar", "paid", "transfer", "dah bayar", "payment",
         "terima", "received", "settled", "sudah", "bank in",
+        "customer", "order", "tempah", "pesan",
     ]
-    order_kw = [
-        "order", "mau", "nak", "book", "beli", "want", "kirim",
-        "tempah", "pesan", "hantar", "send",
-    ]
-    complaint_kw = [
-        "rosak", "broken", "complaint", "marah", "refund", "return",
-        "problem", "issue", "salah", "wrong", "bad",
+    outflow_kw = [
+        "beli", "bought", "purchase", "expenses", "modal", "bahan",
+        "raw material", "inventory", "stok", "stock", "refund", "return",
+        "bayar supplier", "kos", "cost", "sewa", "rent", "bil", "bill",
     ]
 
-    p = sum(1 for k in payment_kw if k in text_lower)
-    o = sum(1 for k in order_kw if k in text_lower)
-    c = sum(1 for k in complaint_kw if k in text_lower)
+    p = sum(1 for k in inflow_kw if k in text_lower)
+    o = sum(1 for k in outflow_kw if k in text_lower)
 
-    mx = max(p, o, c)
-    if mx == 0:
-        return "ORDER_IN", 0.3
-    if p == mx:
+    if p == 0 and o == 0:
+        return "PAYMENT_IN", 0.3
+    if p >= o:
         return "PAYMENT_IN", min(0.95, 0.5 + p * 0.1)
-    if c == mx:
-        return "COMPLAINT", min(0.95, 0.5 + c * 0.1)
-    return "ORDER_IN", min(0.95, 0.5 + o * 0.1)
+    return "CAPITAL_OUT", min(0.95, 0.5 + o * 0.1)
 
 
 async def _download_media(url: str) -> bytes:
@@ -93,19 +87,42 @@ async def _download_media(url: str) -> bytes:
         return resp.content
 
 
-async def _process_and_save(raw_text: str, clerk_id: str, source: str = "whatsapp") -> dict:
+async def _process_and_save(
+    raw_text: str,
+    clerk_id: str,
+    source: str = "whatsapp",
+    sender_context: str = "external",
+) -> dict:
     """
-    Core processing pipeline: classify + extract + save.
-    Shared between real webhook and test endpoint.
+    Core processing pipeline: LLM extract (with flow_type) → classify → save.
+    sender_context: "self" (user sent it) or "external" (other contacts sent it).
+    Classification priority: LLM flow_type > sender heuristic > keyword fallback.
     """
     if not raw_text or len(raw_text.strip()) < 3:
         return {"error": "Could not extract meaningful text from the message."}
 
-    # Intent classification
-    classification, confidence = _classify_intent(raw_text)
+    # Structured extraction via Qwen 2.5 (includes flow_type + type_confidence)
+    extracted_data = await extract_ledger_data(raw_text, sender_context=sender_context)
 
-    # Structured extraction via Qwen 2.5
-    extracted_data = await extract_ledger_data(raw_text)
+    # Determine classification
+    llm_flow = extracted_data.get("flow_type")
+    llm_conf = float(extracted_data.get("type_confidence", 0))
+
+    if llm_flow in ("PAYMENT_IN", "CAPITAL_OUT") and llm_conf >= 0.5:
+        # LLM is confident enough
+        classification = llm_flow
+        confidence = llm_conf
+    elif sender_context == "self":
+        # User-sent messages default to outflow
+        classification = "CAPITAL_OUT"
+        confidence = 0.6
+    elif sender_context == "external":
+        # External contacts default to inflow
+        classification = "PAYMENT_IN"
+        confidence = 0.6
+    else:
+        # Final fallback: keyword classifier
+        classification, confidence = _classify_intent(raw_text)
 
     # Autonomous Convex write
     convex = _get_convex_client()
@@ -166,6 +183,7 @@ async def handle_whatsapp(request: Request):
         profile = None
         clerk_id = ""
         biz_name = ""
+        is_owner = False
 
         try:
             profile = convex.query("profiles:getByPhone", {"phoneNumber": phone})
@@ -176,13 +194,17 @@ async def handle_whatsapp(request: Request):
         if profile:
             clerk_id = profile["clerkId"]
             biz_name = profile.get("businessName", "")
+            # If the sender phone matches the registered profile phone, it's the owner
+            is_owner = profile.get("phoneNumber", "") == phone
         else:
             # DEMO FALLBACK: Route unknown phones to the demo account
-            # so Twilio sandbox testing works without manual phone registration
             demo_id = os.getenv("NEXT_PUBLIC_DEMO_CLERK_ID", "user_3AHz3NhmKaA32EFd5T3Sz4F28N9")
             clerk_id = demo_id
             biz_name = "Demo MSME"
             logger.info(f"[WhatsApp] Unregistered phone {phone} — routing to demo account: {demo_id}")
+
+        # Determine sender context: self-sent (owner) → likely outflow, external → likely inflow
+        sender_context = "self" if is_owner else "external"
 
         # 2. Agentic routing — payload type detection
         raw_text = ""
@@ -210,9 +232,9 @@ async def handle_whatsapp(request: Request):
             logger.warning(f"[WhatsApp] Empty/short text — skipping processing")
             return _reply_twiml("⚠️ Could not extract text. Please send a clearer message or receipt.")
 
-        # 3. Process and save
-        logger.info(f"[WhatsApp] Processing for clerk_id={clerk_id}: '{raw_text[:80]}'")
-        result = await _process_and_save(raw_text, clerk_id, source="whatsapp")
+        # 3. Process and save (with sender context for flow classification)
+        logger.info(f"[WhatsApp] Processing for clerk_id={clerk_id}, sender={sender_context}: '{raw_text[:80]}'")
+        result = await _process_and_save(raw_text, clerk_id, source="whatsapp", sender_context=sender_context)
 
         if "error" in result:
             logger.warning(f"[WhatsApp] Processing error: {result['error']}")
@@ -229,13 +251,14 @@ async def handle_whatsapp(request: Request):
         item = result["extracted_data"].get("item", "item")
         classification = result["classification"]
 
-        emoji = {"PAYMENT_IN": "💰", "ORDER_IN": "📦", "COMPLAINT": "⚠️"}.get(
+        emoji = {"PAYMENT_IN": "💰", "CAPITAL_OUT": "📤"}.get(
             classification, "📝"
         )
+        flow_label = "Masuk (Inflow)" if classification == "PAYMENT_IN" else "Keluar (Outflow)"
 
         reply = (
             f"{emoji} Rekod disimpan!\n"
-            f"Jenis: {classification}\n"
+            f"Jenis: {flow_label}\n"
             f"Item: {item}\n"
             f"Jumlah: RM {amount}\n"
             f"---\nPINTAR.ai 🤖"

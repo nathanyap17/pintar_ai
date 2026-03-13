@@ -62,15 +62,17 @@ async def get_predictive_insights(req: PredictiveRequest):
         convex = _get_convex_client()
 
         # Default values (used if Convex unavailable or no data)
-        total_revenue = 0
-        total_orders = 0
-        total_complaints = 0
+        total_inflow = 0
+        total_outflow = 0
+        net_income = 0
         total_entries = 0
         avg_sentiment = 5.0
         reliability_score = 0
         recent_destinations = []
-        current_month_revenue = 0
-        last_month_revenue = 0
+        current_month_income = 0
+        current_month_expense = 0
+        last_month_income = 0
+        last_month_expense = 0
         top_items = []
         income_7d = 0
         expense_7d = 0
@@ -83,9 +85,9 @@ async def get_predictive_insights(req: PredictiveRequest):
                     {"clerkId": req.clerk_id},
                 )
                 if summary:
-                    total_revenue = summary.get("totalRevenue", 0)
-                    total_orders = summary.get("totalOrders", 0)
-                    total_complaints = summary.get("totalComplaints", 0)
+                    total_inflow = summary.get("totalInflow", 0)
+                    total_outflow = summary.get("totalOutflow", 0)
+                    net_income = summary.get("netIncome", 0)
                     total_entries = summary.get("totalEntries", 0)
                     avg_sentiment = summary.get("avgSentiment", 5.0)
                     reliability_score = summary.get("reliabilityScore", 0)
@@ -116,22 +118,28 @@ async def get_predictive_insights(req: PredictiveRequest):
                         classification = entry.get("classification", "")
                         item_desc = entry.get("itemDescription", "Unknown")
 
-                        # Top items tracking
-                        item_counter[item_desc] += 1
-                        item_revenue[item_desc] = item_revenue.get(item_desc, 0) + amount
+                        # Top items tracking (only based on inflows usually)
+                        if classification == "PAYMENT_IN":
+                            item_counter[item_desc] += 1
+                            item_revenue[item_desc] = item_revenue.get(item_desc, 0) + amount
 
-                        # MoM revenue
+                        # MoM income/expense
                         if classification == "PAYMENT_IN":
                             if entry_date >= current_month_start:
-                                current_month_revenue += amount
+                                current_month_income += amount
                             elif entry_date >= last_month_start:
-                                last_month_revenue += amount
+                                last_month_income += amount
+                        elif classification == "CAPITAL_OUT":
+                            if entry_date >= current_month_start:
+                                current_month_expense += amount
+                            elif entry_date >= last_month_start:
+                                last_month_expense += amount
 
                         # 7-day cash flow
                         if entry_date >= seven_days_ago:
                             if classification == "PAYMENT_IN":
                                 income_7d += amount
-                            elif classification == "ORDER_IN":
+                            elif classification == "CAPITAL_OUT":
                                 expense_7d += amount
 
                     # Build top items list
@@ -165,23 +173,35 @@ async def get_predictive_insights(req: PredictiveRequest):
 
         # ─── 2. DETERMINISTIC MATH ENGINE (Neuro) ───────────────────
 
-        # MoM growth
-        if last_month_revenue > 0:
+        current_month_net = current_month_income - current_month_expense
+        last_month_net = last_month_income - last_month_expense
+
+        # MoM growth based on net income
+        import math
+        if last_month_net != 0:
             mom_growth_pct = round(
-                ((current_month_revenue - last_month_revenue) / last_month_revenue) * 100, 1
+                ((current_month_net - last_month_net) / abs(last_month_net)) * 100, 1
             )
-        elif current_month_revenue > 0:
-            mom_growth_pct = 100.0  # First month with revenue
+        elif current_month_net > 0:
+            mom_growth_pct = 100.0  # First month with positive net income
         else:
             mom_growth_pct = 0.0
 
-        # Baseline 30-day projection (linear extrapolation)
-        if current_month_revenue > 0:
+        # Baseline 30-day projection (linear extrapolation based on net income)
+        days_in_month = 30
+        current_day = datetime.now().day
+        
+        if current_day > 0 and current_day <= days_in_month:
+            # Pro-rate current month net income to 30 days
+            projected_current_month = (current_month_net / current_day) * days_in_month
+            # Average with historical growth trend
             baseline_predicted = round(
-                current_month_revenue * (1 + (mom_growth_pct / 100)), 2
+                projected_current_month * (1 + (min(mom_growth_pct, 50) / 100)), 2
             )
+        elif net_income > 0:
+            baseline_predicted = round(net_income * 1.05, 2)  # 5% growth assumption
         else:
-            baseline_predicted = round(total_revenue * 1.05, 2)  # 5% growth assumption
+            baseline_predicted = 0.0
 
         # Export readiness score (deterministic composite)
         export_readiness = min(100, max(0, int(
@@ -224,13 +244,14 @@ async def get_predictive_insights(req: PredictiveRequest):
 
         user_prompt = f"""
 [HARD FINANCIAL DATA — DO NOT RECALCULATE]
-- Current 30-Day Revenue: RM {current_month_revenue}
-- Last 30-Day Revenue: RM {last_month_revenue}
-- Month-over-Month Growth: {mom_growth_pct}%
-- Baseline Predicted Revenue (Next 30 Days): RM {baseline_predicted}
-- Total Revenue (All Time): RM {total_revenue}
-- Total Orders: {total_orders}
-- Total Complaints: {total_complaints}
+- Current 30-Day Net Income: RM {current_month_net} (Income: RM {current_month_income}, Expense: RM {current_month_expense})
+- Last 30-Day Net Income: RM {last_month_net}
+- Month-over-Month Net Income Growth: {mom_growth_pct}%
+- Predicted Net Income (Next 30 Days): RM {baseline_predicted}
+- Total Lifetime Inflow: RM {total_inflow}
+- Total Lifetime Outflow: RM {total_outflow}
+- Total Lifetime Net Income: RM {net_income}
+- Total Transactions: {total_entries}
 - Buyer Trust/Sentiment Score: {avg_sentiment}/10
 - Export Readiness Score: {export_readiness}/100
 - 7-Day Income: RM {income_7d}
@@ -313,13 +334,14 @@ Output STRICTLY as JSON:
         return {
             # Deterministic values (Math engine output)
             "predicted_30d_revenue_myr": baseline_predicted,
-            "current_month_revenue_myr": current_month_revenue,
+            "current_month_revenue_myr": current_month_net, # For backward compat or UI
             "growth_indicator": f"{mom_growth_pct}%",
             "mom_growth_pct": mom_growth_pct,
             "export_readiness_score": export_readiness,
-            "total_revenue_myr": total_revenue,
-            "total_orders": total_orders,
-            "total_complaints": total_complaints,
+            "total_revenue_myr": total_inflow, # backward compat
+            "total_inflow": total_inflow,
+            "total_outflow": total_outflow,
+            "net_income": net_income,
             "total_entries": total_entries,
             "avg_sentiment": avg_sentiment,
             "target_markets": recent_destinations,

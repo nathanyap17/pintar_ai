@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
@@ -9,7 +10,8 @@ import {
     UploadCloud, MessageSquare, Receipt, TrendingUp,
     Brain, Wallet, DollarSign, Calendar, ArrowUpRight,
     Smartphone, Image as ImageIcon, Zap, ShieldCheck,
-    PauseCircle, PlayCircle, Activity, RotateCcw, AlertTriangle, X
+    PauseCircle, PlayCircle, Activity, RotateCcw, AlertTriangle, X,
+    ArrowDownLeft
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { GlitchText } from "@/components/GlitchText";
@@ -25,6 +27,9 @@ interface PredictiveData {
     mom_growth_pct: number;
     export_readiness_score: number;
     total_revenue_myr: number;
+    total_inflow: number;
+    total_outflow: number;
+    net_income: number;
     total_orders: number;
     total_complaints: number;
     total_entries: number;
@@ -49,6 +54,7 @@ export default function ShadowLedgerPage() {
     const history = useQuery(api.ledgers.getByUser, clerkId ? { clerkId, limit: 10 } : "skip");
     const profile = useQuery(api.profiles.getByClerkId, clerkId ? { clerkId } : "skip");
     const heatmapRaw = useQuery(api.ledgers.getHeatmapData, clerkId ? { clerkId } : "skip");
+    const summary = useQuery(api.ledgers.getSummary, clerkId ? { clerkId } : "skip");
     const deleteAll = useMutation(api.ledgers.deleteAllByUser);
 
     // --- Predictive AI Data ---
@@ -107,7 +113,7 @@ export default function ShadowLedgerPage() {
         }
     };
 
-    const handleAnalyze = async () => {
+    const handleAnalyze = async (entryType?: "PAYMENT_IN" | "CAPITAL_OUT") => {
         const file = fileInputRef.current?.files?.[0];
         if (!file || !clerkId) return;
 
@@ -118,6 +124,9 @@ export default function ShadowLedgerPage() {
         const formData = new FormData();
         formData.append("image", file);
         formData.append("msme_id", clerkId);
+        if (entryType) {
+            formData.append("entry_type", entryType);
+        }
 
         try {
             const res = await axios.post(`${API_URL}/api/ledger/analyze`, formData);
@@ -191,27 +200,74 @@ export default function ShadowLedgerPage() {
     const hasStarted = !!(history && history.length > 0);
 
     // Projection chart data
-    const projectionData = useMemo(() => {
-        const finalTarget = predictiveData?.predicted_30d_revenue_myr || 5100;
-        const currentTarget = predictiveData?.current_month_revenue_myr || 4250;
+    const { chartData, topMetricProjection } = useMemo(() => {
+        let cumulativeActual = 0;
+        const currentDay = new Date().getDate();
+        const daysInMonth = heatmapDisplay.tiles.length || 30;
 
-        return [
-            { day: '1', actual: currentTarget * 0.1, projected: finalTarget * 0.1 },
-            { day: '5', actual: currentTarget * 0.3, projected: finalTarget * 0.25 },
-            { day: '10', actual: currentTarget * 0.5, projected: finalTarget * 0.45 },
-            { day: '15', actual: currentTarget * 0.8, projected: finalTarget * 0.65 },
-            { day: '20', actual: currentTarget, projected: finalTarget * 0.8 },
-            { day: '25', actual: null, projected: finalTarget * 0.9 },
-            { day: '30', actual: null, projected: finalTarget },
-        ];
-    }, [predictiveData]);
+        // Build basic actuals
+        const dailyData = heatmapDisplay.tiles.map(t => {
+            if (t.isPast || t.isToday) cumulativeActual += t.income;
+            return {
+                dayNum: t.day,
+                income: t.income,
+                cumulative: (t.isPast || t.isToday) ? cumulativeActual : null,
+                isFuture: t.isFuture
+            };
+        });
+
+        const chartPoints = [];
+        let projectionTarget = cumulativeActual; // default to current
+
+        // 5-Day Projection Logic (starts from 5th day, ends at 25th)
+        const canProject = currentDay >= 5 && currentDay <= 25;
+        const pStartDay = currentDay;
+        const pEndDay = currentDay + 5;
+        const pStartVal = cumulativeActual;
+        let pEndVal = cumulativeActual;
+
+        if (canProject) {
+            // Sum of recent 5 days
+            const recent5 = dailyData.filter(d => d.dayNum > currentDay - 5 && d.dayNum <= currentDay);
+            const sum5 = recent5.reduce((acc, d) => acc + d.income, 0);
+
+            pEndVal = cumulativeActual + sum5; // predicts amount 5 days after today
+            projectionTarget = pEndVal;
+        }
+
+        for (const d of dailyData) {
+            const isLabelDay = d.dayNum === 1 || d.dayNum % 5 === 0 || d.dayNum === daysInMonth;
+            const label = isLabelDay ? String(d.dayNum) : '';
+
+            let projPoint = null;
+            if (canProject) {
+                // Draw line from currentDay to currentDay+5
+                if (d.dayNum === pStartDay) projPoint = pStartVal;
+                else if (d.dayNum > pStartDay && d.dayNum <= pEndDay) {
+                    const step = (pEndVal - pStartVal) / 5;
+                    projPoint = pStartVal + step * (d.dayNum - pStartDay);
+                }
+            }
+
+            chartPoints.push({
+                day: label,
+                actual: d.cumulative,
+                projected: projPoint
+            });
+        }
+
+        return { chartData: chartPoints, topMetricProjection: projectionTarget };
+    }, [heatmapDisplay]);
 
     if (!isLoaded) return <div className="flex-1 flex items-center justify-center min-h-[500px]"><Activity className="animate-spin text-primary h-8 w-8" /></div>;
 
-    const currentRevenue = predictiveData?.current_month_revenue_myr || 0;
-    const predictedRevenue = predictiveData?.predicted_30d_revenue_myr || 0;
+    const currentNet30d = predictiveData?.current_month_revenue_myr || 0;
+    const predictedNet30d = topMetricProjection; // Inherited from the new projection track
     const momGrowth = predictiveData?.mom_growth_pct || 0;
-    const assetsValue = profile?.assetList?.reduce((acc: number, val: any) => acc + (val.estimatedValue || 0), 0) || 0;
+
+    const grossIncome = summary?.totalInflow || predictiveData?.total_inflow || 0;
+    const totalExpenses = summary?.totalOutflow || predictiveData?.total_outflow || 0;
+    const netIncomeAllTime = summary?.netIncome || predictiveData?.net_income || 0;
 
     return (
         <main className="relative flex flex-1 flex-col items-center overflow-hidden px-6 py-10 lg:px-16">
@@ -307,40 +363,44 @@ export default function ShadowLedgerPage() {
                         <>
                             <div className="cyber-panel p-6 lg:p-8 border-t-2 border-t-primary flex flex-col justify-center min-h-[160px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                 <div className="flex justify-between items-start mb-3">
-                                    <p className="text-xs text-primary/80 uppercase tracking-wider font-bold ">Gross Income (30d)</p>
+                                    <p className="text-xs text-primary/80 uppercase tracking-wider font-bold ">Gross Income</p>
                                     <DollarSign className="h-4 w-4 text-primary" />
                                 </div>
-                                <h3 className="text-2xl font-heading font-bold text-white text-left relative mt-2 mb-1">{currentRevenue.toLocaleString()} <span className="text-sm text-primary/50  tracking-normal transform-none">MYR</span></h3>
-                                <p className={`text-[10px] ${momGrowth >= 0 ? "text-primary" : "text-red-400"} mt-2 flex items-center gap-1 font-bold `}>
-                                    <ArrowUpRight className="h-3 w-3" /> {momGrowth > 0 ? "+" : ""}{momGrowth.toFixed(1)}% vs last month
+                                <h3 className="text-2xl font-heading font-bold text-white text-left relative mt-2 mb-1">{grossIncome.toLocaleString()} <span className="text-sm text-primary/50  tracking-normal transform-none">MYR</span></h3>
+                                <p className="text-[10px] text-primary mt-2 flex items-center gap-1 font-bold ">
+                                    All-time recorded inflows
                                 </p>
+                            </div>
+
+                            <div className="cyber-panel p-6 lg:p-8 border-t-2 border-t-amber-500 flex flex-col justify-center min-h-[160px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                <div className="flex justify-between items-start mb-3">
+                                    <p className="text-xs text-amber-500/80 uppercase tracking-wider font-bold ">Capital / Expenses</p>
+                                    <TrendingUp className="h-4 w-4 text-amber-500" />
+                                </div>
+                                <h3 className="text-2xl font-heading font-bold text-white text-left relative mt-2 mb-1">{totalExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })} <span className="text-sm text-amber-500/50  tracking-normal transform-none">MYR</span></h3>
+                                <p className="text-[10px] text-amber-500/70 mt-2 ">All-time recorded outflows</p>
                             </div>
 
                             <div className="cyber-panel p-6 lg:p-8 border-t-2 border-t-secondary flex flex-col justify-center min-h-[160px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                 <div className="flex justify-between items-start mb-3">
-                                    <p className="text-xs text-secondary/80 uppercase tracking-wider font-bold ">Total Transactions</p>
+                                    <p className="text-xs text-secondary/80 uppercase tracking-wider font-bold ">Net Income (All-time)</p>
                                     <Wallet className="h-4 w-4 text-secondary" />
                                 </div>
-                                <h3 className="text-2xl font-heading font-bold text-white text-left relative mt-2 mb-1">{predictiveData?.total_entries || 0} <span className="text-sm text-secondary/50  tracking-normal transform-none">Entries</span></h3>
-                                <p className="text-[10px] text-secondary mt-2 flex items-center gap-1 font-bold ">Synced from WhatsApp / Statements</p>
-                            </div>
-
-                            <div className="cyber-panel p-6 lg:p-8 border-t-2 border-t-accent flex flex-col justify-center min-h-[160px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                                <div className="flex justify-between items-start mb-3">
-                                    <p className="text-xs text-accent/80 uppercase tracking-wider font-bold ">Capital / Assets</p>
-                                    <TrendingUp className="h-4 w-4 text-accent" />
-                                </div>
-                                <h3 className="text-2xl font-heading font-bold text-white text-left relative mt-2 mb-1">{assetsValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} <span className="text-sm text-accent/50  tracking-normal transform-none">MYR</span></h3>
-                                <p className="text-[10px] text-accent/70 mt-2 ">Liquid cash & inventory value</p>
+                                <h3 className="text-2xl font-heading font-bold text-white text-left relative mt-2 mb-1">{netIncomeAllTime.toLocaleString()} <span className="text-sm text-secondary/50  tracking-normal transform-none">MYR</span></h3>
+                                <p className={`text-[10px] ${netIncomeAllTime >= 0 ? "text-secondary" : "text-red-400"} mt-2 flex items-center gap-1 font-bold `}>
+                                    Gross Income minus Expenses
+                                </p>
                             </div>
 
                             <div className="cyber-panel p-6 lg:p-8 border-t-2 border-t-violet-500 flex flex-col justify-center min-h-[160px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style={{ boxShadow: '0 0 15px rgba(176,38,255,0.3)' }}>
                                 <div className="flex justify-between items-start mb-3">
-                                    <p className="text-xs text-violet-400 uppercase tracking-wider font-bold ">Projected Revenue</p>
+                                    <p className="text-xs text-violet-400 uppercase tracking-wider font-bold ">30-Day Projection</p>
                                     <Zap className="h-4 w-4 text-violet-400" />
                                 </div>
-                                <h3 className="text-2xl font-black text-violet-400 neon-text-violet transform scale-y-[1.15] tracking-tight inline-block text-left relative mt-2 mb-1">{predictedRevenue.toLocaleString()} <span className="text-sm text-violet-400/50  tracking-normal transform-none">MYR</span></h3>
-                                <p className="text-[10px] text-violet-400/80 mt-2 ">Expected next 30 days</p>
+                                <h3 className="text-2xl font-black text-violet-400 neon-text-violet transform scale-y-[1.15] tracking-tight inline-block text-left relative mt-2 mb-1">{predictedNet30d.toLocaleString()} <span className="text-sm text-violet-400/50  tracking-normal transform-none">MYR</span></h3>
+                                <p className="text-[10px] text-violet-400/80 mt-2 flex items-center gap-1">
+                                    <ArrowUpRight className="h-3 w-3" /> {momGrowth > 0 ? "+" : ""}{momGrowth.toFixed(1)}% vs last month (Net)
+                                </p>
                             </div>
                         </>
                     )}
@@ -354,7 +414,7 @@ export default function ShadowLedgerPage() {
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                 <h3 className="font-bold text-primary uppercase text-xs tracking-wider flex items-center gap-2  text-left">
                                     <Calendar className="h-4 w-4 text-primary" />
-                                    Income Heatmap — {heatmapDisplay.monthLabel}
+                                    Net Income Heatmap — {heatmapDisplay.monthLabel}
                                 </h3>
                                 <div className="flex items-center gap-2 text-[10px] text-primary/60 ">
                                     <span>Less</span>
@@ -391,7 +451,7 @@ export default function ShadowLedgerPage() {
                                             {hoveredTile === tile.day && (
                                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 whitespace-nowrap bg-background border border-primary/50 p-2 px-3  text-[10px] shadow-[0_0_10px_rgba(0,255,136,0.3)]" style={{ clipPath: CHAMFER }}>
                                                     <p className="text-white font-bold">Day {tile.day}</p>
-                                                    <p className="text-primary">RM {tile.income.toFixed(2)}</p>
+                                                    <p className="text-primary">Net Income: RM {tile.income.toFixed(2)}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -400,9 +460,9 @@ export default function ShadowLedgerPage() {
                             </div>
                         </div>
 
-                        {/* Daily Income List */}
+                        {/* Daily Ledger Entries */}
                         <div className="cyber-panel p-6 lg:p-8 flex flex-col min-h-[440px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            <h3 className="font-bold text-primary uppercase text-xs tracking-wider mb-4  text-left">Today&apos;s Extracted Income</h3>
+                            <h3 className="font-bold text-primary uppercase text-xs tracking-wider mb-4  text-left">Today&apos;s Ledger Entries</h3>
                             <div className="space-y-3">
                                 {!history || history.length === 0 ? (
                                     <div className="p-6 text-center border border-primary/20 flex flex-col items-center gap-3" style={{ clipPath: CHAMFER }}>
@@ -415,17 +475,23 @@ export default function ShadowLedgerPage() {
                                     history.slice(0, 5).map((tx: any) => (
                                         <div key={tx._id} className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 hover:border-primary/50 transition-colors" style={{ clipPath: CHAMFER }}>
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 flex items-center justify-center ${tx.classification === "PAYMENT_IN" ? "bg-primary/20" : tx.classification === "ORDER_IN" ? "bg-secondary/20" : "bg-red-500/20"}`}>
-                                                    <Receipt className={`h-4 w-4 ${tx.classification === "PAYMENT_IN" ? "text-primary" : tx.classification === "ORDER_IN" ? "text-secondary" : "text-red-400"}`} />
+                                                <div className={`w-8 h-8 flex items-center justify-center ${tx.classification === "PAYMENT_IN" ? "bg-primary/20" : tx.classification === "CAPITAL_OUT" ? "bg-amber-500/20" : "bg-red-500/20"}`}>
+                                                    {tx.classification === "PAYMENT_IN" ? (
+                                                        <ArrowDownLeft className="h-4 w-4 text-primary" />
+                                                    ) : tx.classification === "CAPITAL_OUT" ? (
+                                                        <ArrowUpRight className="h-4 w-4 text-amber-400" />
+                                                    ) : (
+                                                        <Receipt className="h-4 w-4 text-red-400" />
+                                                    )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs font-bold text-white uppercase tracking-wider">{tx.classification}</p>
+                                                    <p className="text-xs font-bold text-white uppercase tracking-wider">{tx.classification === "PAYMENT_IN" ? "INFLOW" : tx.classification === "CAPITAL_OUT" ? "OUTFLOW" : tx.classification}</p>
                                                     <p className="text-[10px] text-primary/70 ">{tx.itemDescription}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className={`text-sm font-black ${tx.classification.includes("IN") ? "text-primary neon-text-cyan" : "text-red-400 neon-text-red"}`}>
-                                                    {tx.classification.includes("IN") ? "+" : "-"}RM {tx.amountMyr.toFixed(2)}
+                                                <p className={`text-sm font-black ${tx.classification === "PAYMENT_IN" ? "text-primary neon-text-cyan" : "text-amber-400"}`}>
+                                                    {tx.classification === "PAYMENT_IN" ? "+" : "-"}RM {tx.amountMyr.toFixed(2)}
                                                 </p>
                                                 <p className="text-[10px] text-primary/50 ">{tx.transactionDate}</p>
                                             </div>
@@ -477,13 +543,24 @@ export default function ShadowLedgerPage() {
                             </p>
 
                             {imagePreview && (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleAnalyze(); }}
-                                    disabled={loadingUpload}
-                                    className="w-full py-2.5 cyber-button text-xs font-bold uppercase"
-                                >
-                                    {loadingUpload ? "Analyzing... Please Wait" : "Process Extracted Image"}
-                                </button>
+                                <div className="flex gap-2 w-full">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleAnalyze("PAYMENT_IN"); }}
+                                        disabled={loadingUpload}
+                                        className="flex-1 py-2.5 text-xs font-bold uppercase tracking-wider bg-primary/20 border border-primary text-primary hover:bg-primary/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                        style={{ clipPath: CHAMFER }}
+                                    >
+                                        {loadingUpload ? "Analyzing..." : "📥 Log as Inflow"}
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleAnalyze("CAPITAL_OUT"); }}
+                                        disabled={loadingUpload}
+                                        className="flex-1 py-2.5 text-xs font-bold uppercase tracking-wider bg-amber-500/20 border border-amber-500 text-amber-400 hover:bg-amber-500/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                        style={{ clipPath: CHAMFER }}
+                                    >
+                                        {loadingUpload ? "Analyzing..." : "📤 Log as Outflow"}
+                                    </button>
+                                </div>
                             )}
                         </div>
 
@@ -559,7 +636,7 @@ export default function ShadowLedgerPage() {
                     ) : (
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#ff00ff" stopOpacity={0.4} />

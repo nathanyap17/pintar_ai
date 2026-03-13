@@ -30,49 +30,46 @@ def get_convex_client():
 
 def classify_intent(text: str) -> tuple[str, float]:
     """
-    Classify transaction intent using DistilBERT (if model available)
-    or keyword fallback.
+    Keyword-based fallback classifier.
+    Returns PAYMENT_IN (inflow) or CAPITAL_OUT (outflow) with confidence.
     """
     text_lower = text.lower()
 
-    # Keyword-based fallback classifier
-    payment_keywords = [
-        "bayar", "paid", "transfer", "dah bayar", "payment", "rm",
-        "terima", "received", "settled", "sudah", "bank in",
+    # Inflow keywords — money received
+    inflow_keywords = [
+        "bayar", "paid", "transfer", "dah bayar", "payment", "terima",
+        "received", "settled", "sudah", "bank in", "customer", "order",
+        "tempah", "pesan", "beli dari", "bought from us",
     ]
-    order_keywords = [
-        "order", "mau", "nak", "book", "beli", "want", "kirim",
-        "tempah", "pesan", "hantar", "send",
-    ]
-    complaint_keywords = [
-        "rosak", "broken", "complaint", "marah", "refund", "return",
-        "problem", "issue", "salah", "wrong", "bad",
+    # Outflow keywords — money spent
+    outflow_keywords = [
+        "beli", "bought", "purchase", "expenses", "modal", "bahan",
+        "raw material", "inventory", "stok", "stock", "refund", "return",
+        "bayar supplier", "kos", "cost", "sewa", "rent", "bil", "bill",
     ]
 
-    payment_score = sum(1 for k in payment_keywords if k in text_lower)
-    order_score = sum(1 for k in order_keywords if k in text_lower)
-    complaint_score = sum(1 for k in complaint_keywords if k in text_lower)
+    inflow_score = sum(1 for k in inflow_keywords if k in text_lower)
+    outflow_score = sum(1 for k in outflow_keywords if k in text_lower)
 
-    max_score = max(payment_score, order_score, complaint_score)
-    if max_score == 0:
-        return "ORDER_IN", 0.3
+    if inflow_score == 0 and outflow_score == 0:
+        return "PAYMENT_IN", 0.3  # Default to inflow if ambiguous
 
-    if payment_score == max_score:
-        return "PAYMENT_IN", min(0.95, 0.5 + payment_score * 0.1)
-    elif complaint_score == max_score:
-        return "COMPLAINT", min(0.95, 0.5 + complaint_score * 0.1)
+    if inflow_score >= outflow_score:
+        return "PAYMENT_IN", min(0.95, 0.5 + inflow_score * 0.1)
     else:
-        return "ORDER_IN", min(0.95, 0.5 + order_score * 0.1)
+        return "CAPITAL_OUT", min(0.95, 0.5 + outflow_score * 0.1)
 
 
 @router.post("/analyze")
 async def analyze_receipt(
     image: UploadFile = File(...),
     msme_id: str = Form(...),
+    entry_type: str = Form(None),  # Optional: "PAYMENT_IN" or "CAPITAL_OUT"
 ):
     """
     Analyze a receipt/chat screenshot.
-    Pipeline: OCR → DistilBERT/keyword classify → Qwen extract → Convex save
+    Pipeline: OCR → Qwen extract (with flow_type) → Convex save
+    If entry_type is provided by the user, it overrides LLM classification.
     """
     try:
         # Step 1: OCR
@@ -85,11 +82,19 @@ async def analyze_receipt(
                 detail="Could not extract text from image. Try a clearer photo.",
             )
 
-        # Step 2: Classify intent
-        classification, confidence = classify_intent(ocr_text)
-
-        # Step 3: Extract structured data via Qwen
+        # Step 2: Extract structured data via Qwen (includes flow_type)
         extracted_data = await extract_ledger_data(ocr_text)
+
+        # Step 3: Determine classification
+        # Priority: user override > LLM flow_type > keyword fallback
+        if entry_type in ("PAYMENT_IN", "CAPITAL_OUT"):
+            classification = entry_type
+            confidence = 1.0  # User explicitly chose
+        elif extracted_data.get("flow_type") in ("PAYMENT_IN", "CAPITAL_OUT"):
+            classification = extracted_data["flow_type"]
+            confidence = float(extracted_data.get("type_confidence", 0.7))
+        else:
+            classification, confidence = classify_intent(ocr_text)
 
         # Step 4: Save to Convex
         convex = get_convex_client()

@@ -49,13 +49,15 @@ export const getSummary = query({
             .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
             .collect();
 
-        const totalRevenue = entries
+        const totalInflow = entries
             .filter((e) => e.classification === "PAYMENT_IN")
             .reduce((sum, e) => sum + e.amountMyr, 0);
 
-        const totalOrders = entries.filter(
-            (e) => e.classification === "ORDER_IN"
-        ).length;
+        const totalOutflow = entries
+            .filter((e) => e.classification === "CAPITAL_OUT")
+            .reduce((sum, e) => sum + e.amountMyr, 0);
+
+        const netIncome = totalInflow - totalOutflow;
 
         const avgSentiment =
             entries.length > 0
@@ -65,15 +67,15 @@ export const getSummary = query({
         const reliability = Math.min(
             100,
             Math.round(
-                (entries.length * 5 + totalRevenue * 0.01 + avgSentiment * 2) * 0.8
+                (entries.length * 5 + totalInflow * 0.01 + avgSentiment * 2) * 0.8
             )
         );
 
         return {
-            totalRevenue,
-            totalOrders,
-            totalComplaints: entries.filter((e) => e.classification === "COMPLAINT")
-                .length,
+            totalRevenue: totalInflow, // backward compat
+            totalInflow,
+            totalOutflow,
+            netIncome,
             totalEntries: entries.length,
             avgSentiment: Math.round(avgSentiment * 10) / 10,
             reliabilityScore: reliability,
@@ -106,8 +108,7 @@ export const getDailyBreakdown = query({
                 days[dateKey].count += 1;
                 if (entry.classification === "PAYMENT_IN") {
                     days[dateKey].income += entry.amountMyr;
-                } else if (entry.classification === "ORDER_IN") {
-                    // Orders are potential future income, tracked separately
+                } else if (entry.classification === "CAPITAL_OUT") {
                     days[dateKey].expense += entry.amountMyr;
                 }
             }
@@ -166,12 +167,14 @@ export const getHeatmapData = query({
             days[d.toISOString().split("T")[0]] = 0;
         }
 
-        // Fill in income data
+        // Fill in net income data (inflow minus outflow)
         for (const entry of entries) {
             const dateKey = entry.transactionDate?.split("T")[0];
             if (dateKey && days[dateKey] !== undefined) {
                 if (entry.classification === "PAYMENT_IN") {
                     days[dateKey] += entry.amountMyr;
+                } else if (entry.classification === "CAPITAL_OUT") {
+                    days[dateKey] -= entry.amountMyr;
                 }
             }
         }

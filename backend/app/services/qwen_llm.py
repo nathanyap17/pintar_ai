@@ -144,23 +144,36 @@ async def _call_openrouter(
 # Task-specific functions
 # ============================================================
 
-async def extract_ledger_data(ocr_text: str) -> dict:
+async def extract_ledger_data(ocr_text: str, sender_context: str = "unknown") -> dict:
     """Extract structured financial data from OCR text using Qwen 2.5."""
     system_prompt = """You are a financial data extraction AI for Sarawak MSMEs.
 Extract structured data from this informal trade text.
 The text may contain Manglish, Sarawak Malay, Iban, or Foochow words.
+
+You MUST determine the flow direction of the transaction:
+- PAYMENT_IN: Money received by the MSME (sales, customer payments, transfers in, income)
+- CAPITAL_OUT: Money spent by the MSME (purchases, expenses, raw materials, inventory, refunds, bills)
+
+To determine flow_type, consider:
+1. Receipt remarks and context (e.g. "beli bahan" = outflow, "customer bayar" = inflow)
+2. Keywords indicating direction (paid/received/bought/sold/refund)
+3. If ambiguous, use sender_context hint if available
+
 Always output valid JSON only."""
 
     user_prompt = f"""Text: "{ocr_text}"
+Sender context: {sender_context}
 
 Output ONLY valid JSON:
-{{"date": "YYYY-MM-DD", "item": "string describing the product/service", "amount_myr": float, "sentiment_1_to_10": int}}
+{{"date": "YYYY-MM-DD", "item": "string describing the product/service", "amount_myr": float, "sentiment_1_to_10": int, "flow_type": "PAYMENT_IN or CAPITAL_OUT", "type_confidence": float}}
 
 Rules:
 - If date is unclear, use today's date
 - amount_myr must be a number (extract from RM mentions)
 - sentiment: 1=very negative, 10=very positive (based on tone of message)
-- item: describe what was bought/sold/ordered"""
+- item: describe what was bought/sold/ordered
+- flow_type: PAYMENT_IN if money is received (inflow), CAPITAL_OUT if money is spent (outflow)
+- type_confidence: 0.0 to 1.0 — your confidence in the flow_type classification"""
 
     return await call_qwen(system_prompt, user_prompt, temperature=0.1)
 

@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
@@ -230,10 +232,14 @@ export default function SnapSellPage() {
                     setError("Failed to fetch polling status.");
                 }
             }, 3000);
-        } catch (err: any) {
+        } catch (err) {
             clearInterval(mockInterval);
             setVideoStatus("failed");
-            setError(err?.response?.data?.detail || "Video generation failed.");
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.detail || "Video generation failed.");
+            } else {
+                setError("Video generation failed.");
+            }
         }
     };
 
