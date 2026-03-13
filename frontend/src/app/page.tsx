@@ -28,8 +28,8 @@ export default function LandingPage() {
                             <a className="text-xs font-medium hover:text-[#39FF14] transition-colors uppercase tracking-widest" href="#">SDG Goals</a>
                         </nav>
                         <div className="flex items-center gap-4">
-                            <button className="px-5 py-2 text-xs font-bold border border-[#39FF14] text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all rounded uppercase brand-font"><Link href="https://distinct-peacock-46.accounts.dev/sign-in">Login</Link></button>
-                            <button className="px-5 py-2 text-xs font-bold bg-[#39FF14] text-black hover:bg-white transition-all rounded neon-glow uppercase brand-font"><Link href="https://distinct-peacock-46.accounts.dev/sign-up">register</Link></button>
+                            <button className="px-5 py-2 text-xs font-bold border border-[#39FF14] text-[#39FF14] hover:bg-[#39FF14] hover:text-black transition-all rounded uppercase brand-font"><Link href="/sign-in">Login</Link></button>
+                            <button className="px-5 py-2 text-xs font-bold bg-[#39FF14] text-black hover:bg-white transition-all rounded neon-glow uppercase brand-font"><Link href="/sign-up">register</Link></button>
                         </div>
                     </div>
                 </header>
@@ -250,7 +250,7 @@ export default function LandingPage() {
                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                                         <button className="w-full sm:w-auto px-10 py-4 bg-[#39FF14] text-black font-black rounded text-sm tracking-widest hover:bg-white transition-all neon-glow uppercase flex items-center justify-center gap-3 group">
                                             <span className="material-symbols-outlined text-sm">terminal</span>
-                                            <Link href="https://distinct-peacock-46.accounts.dev/sign-up" className="flex items-center">
+                                            <Link href="/sign-up" className="flex items-center">
                                                 EXECUTE
                                                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">chevron_right</span>
                                             </Link>
